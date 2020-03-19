@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>OCR分析</title>
+    <link href="./style.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+<body>
+
+<div class="container-fluid" id="main" style="width:100%">
+
+    <header class="blog-header py-3">
+        <div class="row flex-nowrap justify-content-between align-items-center">
+            <div class="col-4 pt-1">
+                <a class="text-muted" href="#">Home</a>
+            </div>
+            <div class="col-4 text-center">
+                <h3>OCR 模板生成</h3>
+            </div>
+            <div class="col-4 d-flex justify-content-end align-items-center">
+                <a class="btn btn-sm btn-outline-secondary" href="#">Sign up</a>
+            </div>
+        </div>
+    </header>
+
+
+    <div>
+            <nav class="navbar navbar-light bg-light">
+                <form class="form-inline">
+                    <input class="form-control mr-sm-4" style="width:300px;font-size:12px"    type="search" placeholder="填写json文件 URL" aria-label="Search">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="button" v-on:click="get_json()" >获取OCR测试数据</button>
+
+                    <span style="margin-left:30px"> 第<span v-text="pageNo" ></span>页</span>
+                    <div class="spinner-grow text-dark" role="status" id="loading-icon">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+
+                </form>
+            </nav>
+
+            <div>
+
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination" id="pagination-ul">
+                        <li class="page-item" v-for=" index of pageCount"  >
+                            <a class="page-link" href="#" v-on:click="parse_data_by_page($event)"
+                               v-bind:name="index"  v-text="index" ></a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+
+    </div>
+
+    <div class="row" >
+        <div class="col-md-8" class="overflow-auto">
+            <canvas id="myCanvas" width="1168px" height="1425px"
+                  style="border:1px solid #000000;">
+        </canvas>
+        </div>
+
+        <!-- Right Start -->
+        <div class="col-md-4">
+
+            <div  class="jumbotron" style="padding-top:30px;padding-bottom:20px">
+                <h5>新建模板业务字段<small></small></h5>
+                    <div>
+                        <ul>
+                            <li><small>点击页面上需要提取的元素</small></li>
+                            <li><small>可以把前缀固定字符提取出来，可以帮助定位 例如<font style="color:blue; bold">Invoice date:29/04/2019</font></small></li>
+                            <li><small>选取元素附近Label作为辅助定位, 该元素的文本是固定不变的</small></li>
+                            <li><small>前缀字符串和辅助定位元素 至少填写一个</small></li>
+                            <li><small>输入对应的业务字段的名称</small></li>
+                        </ul>
+
+
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="block_value" class="col-sm-3">提取元素<span style="margin:5px;border:1px solid red;padding-right:10px">&nbsp;</span></label>
+                        <input type="text" id="block_pre_value" class="col-sm-4"  style="font-size:12px"  placeholder="前缀字符串"  onkeyup="input_pre_key()" />
+                        <input type="text" id="block_value" class="col-sm-4" style="font-size:12px" readonly="true"  />
+                    </div>
+                    <div class="form-group row">
+                        <label for="block_key" class="col-sm-3" >定位元素<span style="margin:5px;border:1px solid green;padding-right:10px">&nbsp;</span></label>
+                        <input type="text" id="block_key" class="col-sm-4" style="font-size:12px" readonly="true"   />
+                        <div class="col-sm-5"></div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="business_field" class="col-sm-3">业务字段</label>
+                        <input type="text" id="business_field" style="font-size:12px" class="col-sm-4"  >
+                        <div class="col-sm-5"></div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-10">
+                            <button type="button" class="btn btn-primary" v-on:click="add_field()">添加</button>
+                            <button type="button" class="btn btn-secondary" v-on:click="clean_current_field()"   >清空</button>
+                        </div>
+                    </div>
+
+            </div>
+
+            <div>
+
+                <h5>业务字段列表  <small v-if="fieldList.length > 0">&nbsp;&nbsp;&nbsp;共<span  v-text="fieldList.length" ></span>个字段</small> </h5>
+                <table class="table table-bordered" style="font-size:14px"   >
+                    <tr >
+<!--                        <td style="padding:4px;width:%5" >Id</td>-->
+                        <td style="padding:4px;" >业务字段</td>
+                        <td style="padding:4px;" >定位元素</td>
+                        <td style="padding:4px;" >提取元素</td>
+                        <td style="padding:4px;width:15%">[x,y]/页数</td>
+                    </tr>
+                    <tr v-for="(item, index) of fieldList" >
+<!--                        <td style="padding:4px;" ><small><span v-text="index + 1" ></span></small></td>-->
+                        <td style="padding:4px;" >
+                            <small><span v-text="item.business_field"></span></small>
+                        </td>
+                        <td style="padding:4px;" >
+                            <small>
+                                <template v-if="item.key_label_text !=null ">
+                                <span  v-if="item.key_label_text !=null " style="color:green" v-text="item.key_label_text"></span><br/>
+                                </template>
+                                <span v-if="item.pre_label_text !=null " style="color:red" v-text="item.pre_label_text"></span>
+
+                            </small>
+                        </td>
+                        <td style="padding:4px;" >
+                            <small><span v-text="item.value_block_item.text"></span></small>
+                        </td>
+                        <td style="padding:4px;" >
+                            <small>[<span v-text="item.value_block_item.left   "></span>,
+                            <span v-text="item.value_block_item.top  "></span>]
+                            /<span v-text="item.pageNo  "></span>
+                            </small>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    <button type="button" class="btn btn-primary"> 保存模板</button>
+                    <button type="button" class="btn btn-secondary" v-on:click="export_template()"> 查看导出信息</button>
+                </p>
+            </div>
+
+
+        </div>
+
+        <!-- Modal  start -->
+        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="myModalLabel">提示信息</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="myModalContent">
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+<!--                        <button type="button" class="btn btn-primary">Save changes</button>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Modal  end -->
+        <!-- Right End -->
+    </div>
+
+</div>
+
+</body>
+<script src="./v.js"></script>
+<script src="./index.js"></script>
+<script src="./util.js"></script>
+
+</html>

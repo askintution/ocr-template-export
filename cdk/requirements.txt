@@ -1,0 +1,9 @@
+aws-cdk.core
+
+aws-cdk.aws_lambda
+aws-cdk.aws_lambda_event_sources
+aws-cdk.aws_dynamodb
+aws_apigateway
+
+boto3
+botocore
