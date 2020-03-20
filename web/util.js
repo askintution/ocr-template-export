@@ -42,8 +42,8 @@ function deepClone(obj){
 }
 
 function getTanDeg(tan) {
-        var result = Math.atan(tan) / Math.PI  ;
-//        result = Math.round(result);
+        //Math.PI
+        var result = Math.atan(tan);
         return result;
 }
 

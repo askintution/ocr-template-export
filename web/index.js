@@ -36,8 +36,15 @@ function parse_data_by_page(page){
             index++
         }
     }
+     var max_width_block = find_max_width_block(blockList)
+     pointA = max_width_block['Geometry']['Polygon'][0]
+     pointB = max_width_block['Geometry']['Polygon'][1]
+
+    tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
+    var theta = Math.atan(tan)
+    console.log("   %f   ", theta)
+
     //反方向旋转Theta
-    var theta = -1 * find_best_degree(blockList)
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]
 
     var blockCount = blockList.length
@@ -54,97 +61,25 @@ function parse_data_by_page(page){
     ctx.clearRect(0,0,c.width,c.height);
     blockItemList = new Array()
 
+    //计算旋转后坐标
     for(i =0 ; i<blockCount; i++){
        blockItem = create_block(blockList[i])
        blockItemList.push(blockItem)
-       draw_block_inside(ctx, blockItem, 0)
     }
+
+    var page_margin = init_page_margin_block(blockItemList)
 
     vue.blockItemList = blockItemList
+    // 删除空白边缘， 重新绘制元素
+    for(i =0 ; i<blockItemList.length; i++){
+        var blockItem = blockItemList[i]
+        zoom_layout_block(blockItem, page_margin)
+        draw_block_inside(ctx, blockItem, 0)
+    }
 
-    console.log("---------------   111 f ")
+    // 重新加载其它页面已经选取过的元素
     redraw_blockItem()
 }
-
-/**
-因为不知道图片的原始旋转坐标是哪里， 只能尝试用用图片的中点进行旋转，
-1. 先让每个元素水平，
-2. 每个元素水平以后， 再划分行
-下面的函数， 是给出两个点， 尝试围绕[0, 0] 点旋转， 让这两个点的 tan值最小。
-*/
-function find_best_degree(blockList){
-    var max_width_block = find_max_width_block(blockList)
-    pointA = max_width_block['Geometry']['Polygon'][0]
-    pointB = max_width_block['Geometry']['Polygon'][1]
-    var polyList =  [pointA, pointB]
-    console.info('【Method find_best_degree】  A[%f, %f] B [%f %f]', pointA['X'], pointA['Y'] , pointB['X'], pointB['Y'] )
-
-    var total_count = 0;
-    //Math.PI/12 -- > 30度的角
-    var rates = get_rate_array( -1* Math.PI/12 , Math.PI/12  , 5)
-    var result = 0.0
-    while(total_count < 30  ){
-        min_rate_index = 0
-        interval = rates[1]- rates[0]
-        min_rate = 10000.0
-        raw_min_rate = 0
-        total_count += 1
-        for(r=0 ; r<rates.length; r++){
-
-            theta = rates[r] // 围绕原点旋转的角度
-            _matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]
-
-            polyArray = new Array()
-
-            for(j=0; j<2; j++){
-        //        console.log(' x=%d  y=%d', Math.round(page_width * parseFloat(polyList[j]['X'])),
-        //                           Math.round(page_height * parseFloat(polyList[j]['Y'])))
-                ploy = {}
-                ploy['x'] = page_width * parseFloat(polyList[j]['X'])
-                ploy['y'] = -1.0 * page_height * parseFloat(polyList[j]['Y'])
-                newPloy = matrix_rotate(_matrix, ploy)
-                newPloy['y'] = Math.abs(newPloy['y'])
-                polyArray.push(newPloy)
-            }
-
-            value = (polyArray[1]['y'] - polyArray[0]['y'])
-            if(Math.abs(value) < min_rate ){
-                min_rate_index = r
-                raw_min_rate = value
-                min_rate =  Math.abs(value)
-            }
-//            console.log( 'old y1=%f, y2=%f,  Old Y1=%f, Y2=%f  New: Y1=%f,   Y2=%f',
-//            polyList[0]['Y'], polyList[1]['Y'],  page_height *  polyList[0]['Y'],
-//             page_height *  polyList[1]['Y'],polyArray[1]['y'], polyArray[0]['y'] )
-        }
-        if(min_rate_index ==0 ){
-            rates = get_rate_array( rates[0] - interval, rates[min_rate_index+1] , rates.length)
-        }else if(min_rate_index== rates.length){
-           rates = get_rate_array( rates[min_rate_index-1], rates[rates.length-1] + interval , rates.length)
-        }else {
-           rates = get_rate_array( rates[min_rate_index-1], rates[min_rate_index+1] , rates.length)
-        }
-
-//        console.log('count [%d]  interval %f \t theta[%d] = %f, \t best delta y: %f ', total_count, interval, min_rate_index,rates[min_rate_index],  raw_min_rate)
-        result = rates[min_rate_index]
-        if(min_rate < EPSILON){
-            break;
-        }
-    }
-
-    return result;
-}
-
-function get_rate_array(start, end, size){
-    interval = (end - start)/ (size-1)
-    newArray = new Array(size)
-
-    for(i=0; i< size; i++ ){
-        newArray[i]= start + 1.0* i * interval
-    }
-    return newArray;
-}
-
 
 
 
@@ -170,10 +105,6 @@ function create_block(block){
 //    封装block 元素， 供页面显示
     var blockItem = {
         id:block['Id'],
-        width: parseInt(page_width * (polyArray[1]['x'] - polyArray[0]['x'])),
-        height: parseInt(page_height *(polyArray[3]['y'] - polyArray[0]['y'])),
-        left: parseInt(page_width * polyArray[0]['x']),
-        top: parseInt(page_height * polyArray[0]['y']),
         newPoly:polyArray,
         polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
@@ -184,6 +115,26 @@ function create_block(block){
     return blockItem
 }
 
+
+function zoom_layout_block(blockItem , page_margin){
+
+        var page_top = page_margin['top']
+        var page_left = page_margin['left']
+        var polyArray  = blockItem['newPoly']
+         for (var i=0; i<polyArray.length; i++){
+
+            var poly = polyArray[i];
+
+            poly['x'] = (poly['x'] -  page_left) * page_margin['width_rate']
+            poly['y']  = (poly['y'] -  page_top) * page_margin['height_rate']
+         }
+
+        blockItem['width'] = parseInt(page_width * (polyArray[1]['x'] - polyArray[0]['x']))
+        blockItem['height'] = parseInt(page_height *(polyArray[3]['y'] - polyArray[0]['y']))
+        blockItem['left'] = parseInt(page_width * polyArray[0]['x'])
+        blockItem['top'] = parseInt(page_height * polyArray[0]['y'])
+
+}
 
 /**
 绘制block
@@ -225,4 +176,53 @@ function find_max_width_block(blockList){
                }
         }
         return max_width_block;
+}
+
+
+/**
+找到页面空白的地方， 去除掉， 防止有偏移
+**/
+function init_page_margin_block(blockList){
+        var min_top_block = null
+        var page_top = 1
+        var page_bottom = 0.0
+        var page_left = 1
+        var page_right = 0.0
+
+        for(i =0 ; i< blockItemList.length; i++){
+               var top =  blockItemList[i]['newPoly'][0]['y']
+               if(top<page_top){
+                    page_top = top
+               }
+               var left =  blockItemList[i]['newPoly'][0]['x']
+               if(left<page_left){
+                  page_left = left
+               }
+
+               var bottom =  blockItemList[i]['newPoly'][2]['y']
+               if(bottom > page_bottom){
+                   page_bottom = bottom
+               }
+
+               var right =  blockItemList[i]['newPoly'][2]['x']
+               if(right > page_right){
+                   page_right = right
+               }
+
+        }
+
+
+        var page_margin ={'top':0, 'bottom':1, 'left':0, 'right':'1'}
+        page_margin['top'] = page_top;
+        page_margin['bottom'] = page_bottom;
+        page_margin['left'] = page_left;
+        page_margin['right'] = page_right;
+
+
+        page_margin['height_rate'] = 1.0/(page_bottom - page_top);
+        page_margin['width_rate'] =  1.0/(page_right - page_left)  ;
+
+        console.log("page_margin", page_margin)
+        return page_margin;
+
 }

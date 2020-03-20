@@ -66,8 +66,11 @@ function get_data(url){
 //          console.log(key + ' = ' + blockItem['top'] +'   offsetX: %d offsetY :%d ',  e['offsetX'],  e['offsetY']);
           if(check_inside(blockItem, offsetX, offsetY)){
             var selected = blockItem['selected']
-            console.log('top %f ; left %f ---> [%s]  ', blockItem['top'],
+            console.log('tops %f ; left %f ---> [%s]  ', blockItem['top'],
                             blockItem['left'], blockItem['text'] )
+
+             console.log(' [%f, %f]  [%f, %f]   ', blockItem['newPoly'][0]['x'], blockItem['newPoly'][0]['y']
+                                  ,    blockItem['newPoly'][1]['x'],blockItem['newPoly'][1]['y']   )
             if(selected == 0){
                 blockItem['selected'] = 1
                 dealWithSelectBlock(ctx, blockItem)
