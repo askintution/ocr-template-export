@@ -6,41 +6,75 @@ from aws_cdk import (
 )
 
 
+TABLE_TEMPLATE_NAME = "ocr_template"
+
+TABLE_FIELD_NAME = "ocr_field"
+
 class OcrInfraStack(core.Stack):
 
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
         # create dynamo table
-        demo_table = aws_dynamodb.Table(
-            self, "ocr_template", table_name="ocr_template",
+        template_table = aws_dynamodb.Table(
+            self, TABLE_TEMPLATE_NAME, table_name=TABLE_TEMPLATE_NAME,
             billing_mode=aws_dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=core.RemovalPolicy.DESTROY, #开发阶段设置为 DESTROY， 正式环境设置为.RETAIN
             partition_key=aws_dynamodb.Attribute(
                 name="id",
                 type=aws_dynamodb.AttributeType.STRING
+            ),
+            sort_key=aws_dynamodb.Attribute(
+                name='create-time',
+                type=aws_dynamodb.AttributeType.STRING
             )
         )
 
+        field_table = aws_dynamodb.Table(
+            self, TABLE_FIELD_NAME, table_name=TABLE_FIELD_NAME,
+            billing_mode=aws_dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=core.RemovalPolicy.DESTROY, #开发阶段设置为 DESTROY， 正式环境设置为.RETAIN
+            partition_key=aws_dynamodb.Attribute(
+                name="template-id",
+                type=aws_dynamodb.AttributeType.STRING
+            )
+        )
+
+
+        # KeySchema=[
+        #       {
+        #           'AttributeName': ATTR_USER_ID,
+        #           'KeyType': 'HASH'
+        #       },
+        #       {
+        #           'AttributeName': ATTR_ITEM_ID,
+        #           'KeyType': 'RANGE'
+        #       }
+        #   ],
+
         # create producer lambda function
         producer_lambda = aws_lambda.Function(self, "producer_lambda_function",
-                                              function_name="OcrAddTemplate",
+                                              function_name="OcrPostData",
                                               runtime=aws_lambda.Runtime.PYTHON_3_6,
                                               handler="lambda_function.lambda_handler",
                                               code=aws_lambda.Code.asset("./lambda/producer"))
-        producer_lambda.add_environment("TABLE_NAME", demo_table.table_name)
-        demo_table.grant_write_data(producer_lambda)
+        producer_lambda.add_environment("TABLE_TEMPLATE_NAME", template_table.table_name)
+        producer_lambda.add_environment("TABLE_FIELD_NAME", field_table.table_name)
+        template_table.grant_write_data(producer_lambda)
+        field_table.grant_write_data(producer_lambda)
 
 
 
         # create consumer lambda function
         consumer_lambda = aws_lambda.Function(self, "consumer_lambda_function",
-                                              function_name="OcrGetAllTemplates",
+                                              function_name="OcrGetData",
                                               runtime=aws_lambda.Runtime.PYTHON_3_6,
                                               handler="lambda_function.lambda_handler",
                                               code=aws_lambda.Code.asset("./lambda/consumer"))
-        consumer_lambda.add_environment("TABLE_NAME", demo_table.table_name)
-        demo_table.grant_read_data(consumer_lambda)
+        consumer_lambda.add_environment("TABLE_TEMPLATE_NAME", template_table.table_name)
+        consumer_lambda.add_environment("TABLE_NAME", field_table.table_name)
+        template_table.grant_read_data(consumer_lambda)
+        field_table.grant_read_data(consumer_lambda)
 
 
         # ---------------------api-gateway  GET -------------------- #
@@ -59,12 +93,12 @@ class OcrInfraStack(core.Stack):
         }]
 
 
-        consumer_api = aws_apigateway.RestApi(self, 'OcrGetTemplates',
+        consumer_api = aws_apigateway.RestApi(self, 'OcrGetDataApi',
                                     endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
-                                    rest_api_name='OcrGetTemplates')
+                                    rest_api_name='OcrGetDataApi')
 
-        method_templates = "templates"
-        consumer_entity = consumer_api.root.add_resource(method_templates)
+        method_get_data = "getData"
+        consumer_entity = consumer_api.root.add_resource(method_get_data)
         consumer_entity_lambda_integration = aws_apigateway.LambdaIntegration(consumer_lambda, proxy=False,
             integration_responses=integration_responses)
 
@@ -73,21 +107,21 @@ class OcrInfraStack(core.Stack):
 
 
 
-        producer_api = aws_apigateway.RestApi(self, 'OcrAddTemplate',
+        producer_api = aws_apigateway.RestApi(self, 'OcrPostDataApi',
                                               endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
-                                              rest_api_name='OcrAddTemplate')
+                                              rest_api_name='OcrPostDataApi')
 
-        method_add_template = "addTemplate"
-        producer_entity = producer_api.root.add_resource(method_add_template)
+        method_post_data = "postData"
+        producer_entity = producer_api.root.add_resource(method_post_data)
         producer_entity_lambda_integration = aws_apigateway.LambdaIntegration(producer_lambda, proxy=False,
             integration_responses=integration_responses)
 
         producer_entity.add_method('POST', producer_entity_lambda_integration,
             method_responses=method_responses)
 
-        core.CfnOutput(self, "Get-All-Templates", value=consumer_api.url+method_templates,
+        core.CfnOutput(self, "Get-Data", value=consumer_api.url+method_get_data,
                        description="Get all template url")
-        core.CfnOutput(self, "Add-Template", value=producer_api.url+method_add_template,
+        core.CfnOutput(self, "Post-Data", value=producer_api.url+method_post_data,
                        description="Add template url")
         self.add_cors_options(consumer_entity)
         self.add_cors_options(producer_entity)
