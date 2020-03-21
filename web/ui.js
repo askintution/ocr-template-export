@@ -242,10 +242,33 @@ function save_template(){
     }
 
 
+    //locationItemList 用来定位模板的元素
+    var locationItemList = []
+    for(var i=0; i<MIN_KEY_BLOCK_COUNT; i++){
+        var locationItem = {}
+        field = vue.fieldList[i]
+
+        if(field['pre_label_text'] == null || field['pre_label_text'].length ==0){
+            locationItem['label_text'] = field['pre_label_text']
+            locationItem['x'] = field['value_block_item']['x']
+            locationItem['y'] = field['value_block_item']['x']
+            locationItem['block_type'] = 0 //定位的类型， 用当前的元素位置和前缀字符串定位
+        }else {
+            locationItem['label_text'] = field['key_block_item']['text']
+            locationItem['x'] = field['key_block_item']['x']
+            locationItem['y'] = field['key_block_item']['x']
+            locationItem['block_type'] = 1  //定位的类型， 用额外的元素定位
+        }
+
+        locationItemList.push(locationItem)
+
+    }
+
+
     var template = {}
     template['name'] = template_name
     template['data_url'] = vue.data_url
-
+    template['location_items'] = locationItemList
 
 
     var data = {}
@@ -254,6 +277,8 @@ function save_template(){
 
 
     postData(CMD_SAVE_TEMPLATE, data)
+//    console.log("from server :\n");
+//    console.log(JSON.stringify(data));
 
     show_message("正在保存中，请稍后")
 

@@ -22,7 +22,7 @@ function requestData( data){
               dataType:"json",
               success:function(data){
                     console.log("from server :\n");
-                    console.log(JSON.stringify(data));
+                    console.log(JSON.stringify(data.data));
 //                   JSON.parse(data.body)
                     show_message("操作成功")
 
