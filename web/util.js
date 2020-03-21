@@ -42,9 +42,7 @@ function deepClone(obj){
 }
 
 function getTanDeg(tan) {
-        //Math.PI
-        var result = Math.atan(tan);
-        return result;
+        return Math.atan(tan);
 }
 
 /**
@@ -65,3 +63,17 @@ function matrix_rotate(m, point){
     return new_point
 }
 
+
+String.format = function(src){
+
+       if (arguments.length == 0) return null;
+
+       var args = Array.prototype.slice.call(arguments, 1);
+
+       return src.replace(/\{(\d+)\}/g, function(m, i){
+
+             return args[i];
+
+      });
+
+};

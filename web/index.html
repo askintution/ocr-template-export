@@ -66,7 +66,7 @@
 
     <div class="row" >
         <div class="col-md-8" class="overflow-auto">
-            <canvas id="myCanvas" width="1168px" height="1425px"
+            <canvas id="myCanvas" width="960px" height="1200px"
                   style="border:1px solid #000000;">
         </canvas>
         </div>
@@ -149,9 +149,15 @@
                         </td>
                     </tr>
                 </table>
+
+                <div class="form-group row">
+                    <label for="business_field" class="col-sm-3">模板名称</label>
+                    <input type="text" id="template_name_id" style="font-size:12px" class="col-sm-4"  >
+                    <div class="col-sm-5"></div>
+                </div>
+
                 <p>
-                    <button type="button" class="btn btn-primary"> 保存模板</button>
-                    <button type="button" class="btn btn-secondary" v-on:click="export_template()"> 查看导出信息</button>
+                    <button type="button" class="btn btn-primary" v-on:click="save_template()"> 保存模板</button>
                 </p>
             </div>
 
@@ -185,8 +191,9 @@
 </div>
 
 </body>
-<script src="./v.js"></script>
+<script src="./ui.js"></script>
 <script src="./index.js"></script>
 <script src="./util.js"></script>
+<script src="./network.js"></script>
 
 </html>

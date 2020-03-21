@@ -5,9 +5,7 @@ from aws_cdk import (
     aws_apigateway,
 )
 
-
 TABLE_TEMPLATE_NAME = "ocr_template"
-
 TABLE_FIELD_NAME = "ocr_field"
 
 class OcrInfraStack(core.Stack):
@@ -25,7 +23,7 @@ class OcrInfraStack(core.Stack):
                 type=aws_dynamodb.AttributeType.STRING
             ),
             sort_key=aws_dynamodb.Attribute(
-                name='create-time',
+                name='create_time',
                 type=aws_dynamodb.AttributeType.STRING
             )
         )
@@ -35,26 +33,18 @@ class OcrInfraStack(core.Stack):
             billing_mode=aws_dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=core.RemovalPolicy.DESTROY, #开发阶段设置为 DESTROY， 正式环境设置为.RETAIN
             partition_key=aws_dynamodb.Attribute(
-                name="template-id",
+                name="template_id",
+                type=aws_dynamodb.AttributeType.STRING
+            ),
+            sort_key=aws_dynamodb.Attribute(
+                name='business_field',
                 type=aws_dynamodb.AttributeType.STRING
             )
         )
 
-
-        # KeySchema=[
-        #       {
-        #           'AttributeName': ATTR_USER_ID,
-        #           'KeyType': 'HASH'
-        #       },
-        #       {
-        #           'AttributeName': ATTR_ITEM_ID,
-        #           'KeyType': 'RANGE'
-        #       }
-        #   ],
-
         # create producer lambda function
         producer_lambda = aws_lambda.Function(self, "producer_lambda_function",
-                                              function_name="OcrPostData",
+                                              function_name="OcrData",
                                               runtime=aws_lambda.Runtime.PYTHON_3_6,
                                               handler="lambda_function.lambda_handler",
                                               code=aws_lambda.Code.asset("./lambda/producer"))
@@ -62,20 +52,6 @@ class OcrInfraStack(core.Stack):
         producer_lambda.add_environment("TABLE_FIELD_NAME", field_table.table_name)
         template_table.grant_write_data(producer_lambda)
         field_table.grant_write_data(producer_lambda)
-
-
-
-        # create consumer lambda function
-        consumer_lambda = aws_lambda.Function(self, "consumer_lambda_function",
-                                              function_name="OcrGetData",
-                                              runtime=aws_lambda.Runtime.PYTHON_3_6,
-                                              handler="lambda_function.lambda_handler",
-                                              code=aws_lambda.Code.asset("./lambda/consumer"))
-        consumer_lambda.add_environment("TABLE_TEMPLATE_NAME", template_table.table_name)
-        consumer_lambda.add_environment("TABLE_NAME", field_table.table_name)
-        template_table.grant_read_data(consumer_lambda)
-        field_table.grant_read_data(consumer_lambda)
-
 
         # ---------------------api-gateway  GET -------------------- #
 
@@ -92,26 +68,11 @@ class OcrInfraStack(core.Stack):
             }
         }]
 
-
-        consumer_api = aws_apigateway.RestApi(self, 'OcrGetDataApi',
-                                    endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
-                                    rest_api_name='OcrGetDataApi')
-
-        method_get_data = "getData"
-        consumer_entity = consumer_api.root.add_resource(method_get_data)
-        consumer_entity_lambda_integration = aws_apigateway.LambdaIntegration(consumer_lambda, proxy=False,
-            integration_responses=integration_responses)
-
-        consumer_entity.add_method('GET', consumer_entity_lambda_integration,
-            method_responses= method_responses)
-
-
-
-        producer_api = aws_apigateway.RestApi(self, 'OcrPostDataApi',
+        producer_api = aws_apigateway.RestApi(self, 'OcrApi',
                                               endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
-                                              rest_api_name='OcrPostDataApi')
+                                              rest_api_name='OcrApi')
 
-        method_post_data = "postData"
+        method_post_data = "ocr"
         producer_entity = producer_api.root.add_resource(method_post_data)
         producer_entity_lambda_integration = aws_apigateway.LambdaIntegration(producer_lambda, proxy=False,
             integration_responses=integration_responses)
@@ -119,11 +80,8 @@ class OcrInfraStack(core.Stack):
         producer_entity.add_method('POST', producer_entity_lambda_integration,
             method_responses=method_responses)
 
-        core.CfnOutput(self, "Get-Data", value=consumer_api.url+method_get_data,
-                       description="Get all template url")
-        core.CfnOutput(self, "Post-Data", value=producer_api.url+method_post_data,
-                       description="Add template url")
-        self.add_cors_options(consumer_entity)
+        core.CfnOutput(self, "OCR-Data", value=producer_api.url+method_post_data,
+                       description="ocr url")
         self.add_cors_options(producer_entity)
 
 

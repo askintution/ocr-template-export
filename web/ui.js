@@ -1,4 +1,5 @@
 var vue ;
+var MIN_KEY_BLOCK_COUNT = 2 //最少的定位元素
 $(function(){
 
     vue = new Vue({
@@ -8,6 +9,8 @@ $(function(){
                 currentField:{},
                 fieldList:[],
                 pageCount:0,
+//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/ocr-demo.json",
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json",
                 data:{},
                 pageNo:0,
 
@@ -15,9 +18,6 @@ $(function(){
                 get_json:function(){
                     url = $("#json_url_input").val()
                     get_data(url)
-                },
-                export_template:function(){
-                    export_template()
                 },
                 clean_current_field:function(){
                     clean_current_field()
@@ -28,19 +28,22 @@ $(function(){
                 parse_data_by_page:function(e){
                     pageIndex = e.currentTarget.name
                     parse_data_by_page(pageIndex)
+                },
+                save_template:function(){
+
+                    save_template()
                 }
              }
     })
 
-//    get_data("https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/ocr-demo.json")
-    get_data("https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json")
+    get_data(vue.data_url)
 });
 
 
 
 function get_data(url){
     console.log('url: ', url)
-
+    vue.data_url = url
     if(url == null || url == ''){
         return ;
     }
@@ -66,11 +69,11 @@ function get_data(url){
 //          console.log(key + ' = ' + blockItem['top'] +'   offsetX: %d offsetY :%d ',  e['offsetX'],  e['offsetY']);
           if(check_inside(blockItem, offsetX, offsetY)){
             var selected = blockItem['selected']
-            console.log('tops %f ; left %f ---> [%s]  ', blockItem['top'],
-                            blockItem['left'], blockItem['text'] )
+            console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
+                            blockItem['left'], blockItem['id'], blockItem['text'] )
 
-             console.log(' [%f, %f]  [%f, %f]   ', blockItem['newPoly'][0]['x'], blockItem['newPoly'][0]['y']
-                                  ,    blockItem['newPoly'][1]['x'],blockItem['newPoly'][1]['y']   )
+             console.log(' [x=%f, y=%f]  ', blockItem['x'], blockItem['y']
+                                  )
             if(selected == 0){
                 blockItem['selected'] = 1
                 dealWithSelectBlock(ctx, blockItem)
@@ -94,17 +97,15 @@ function dealWithSelectBlock(ctx, blockItem){
         vue.currentField['status'] = 1
 
         $("#block_value").val(blockItem['text'])
-        //FIXME 画不同的颜色
     }else if(status==1){
         vue.currentField['key_block_item'] = blockItem
         blockItem['blockType'] = 2
         draw_block_inside(ctx, blockItem)
         vue.currentField['status'] = 2
         $("#block_key").val(blockItem['text'])
-        //FIXME 画不同的颜色
     }else {
 
-        alert("请先保存当前选择的字段")
+        show_message("请先保存当前选择的字段")
     }
 }
 
@@ -180,9 +181,15 @@ function add_field(){
 
     currentField['status']  = vue.currentField['status']
     currentField['value_block_item']  = deepClone(vue.currentField['value_block_item'])
+
+
+
     currentField['business_field']  = $("#business_field").val()
     currentField['pageNo'] = vue.pageNo
     currentField['pre_label_text'] = block_pre_value
+
+    currentField['value_block_item']['text']  = currentField['value_block_item']['text'].substring(block_pre_value.length)
+
     currentField['key_block_item']  = deepClone(vue.currentField['key_block_item'])
     if(currentField['key_block_item'] !=null){
         currentField['key_label_text'] = vue.currentField['key_block_item']['text']
@@ -216,12 +223,48 @@ function show_message(message){
 }
 
 
-function export_template(){
 
-    if(vue.fieldList == null || vue.fieldList.length==0){
-        show_message('还没有添加业务字段， 请先新建业务字段')
+function save_template(){
+
+    if(vue.fieldList == null || vue.fieldList.length<MIN_KEY_BLOCK_COUNT){
+        var template = "需要至少添加{0}个定位字段";
+        var message = String.format(template, MIN_KEY_BLOCK_COUNT);
+        show_message(message)
         return ;
     }
+
+    var template_name = $("#template_name_id").val()
+
+    if(template_name == null || template_name.length<=0){
+        show_message("请添加模板名称")
+        $("#template_name_id").focus()
+        return ;
+    }
+
+
+    var template = {}
+    template['name'] = template_name
+    template['data_url'] = vue.data_url
+
+
+
+    var data = {}
+    data['template'] = template;
+    data['fields'] = create_field_list();
+
+
+    postData(CMD_SAVE_TEMPLATE, data)
+
+    show_message("正在保存中，请稍后")
+
+
+}
+
+/**
+导出业务字段
+*/
+function create_field_list(){
+
     var itemList = new Array()
 
     /**
@@ -234,17 +277,40 @@ function export_template(){
         var item = {}
 
 
-        item['pageNo'] = field['pageNo']
+        item['page_no'] = field['pageNo']
         item['business_field'] = field['business_field']
-        item['key_text'] = field['key_block_item']['text']
-        item['value_text'] = field['value_block_item']['text']
 
+        var value_block = field['value_block_item'];
+        item['value_block'] = {'id':value_block['id'],
+                               'text':value_block['text'],
+                                'x':value_block['x'],
+                                'y':value_block['y']}
+
+        var key_block = field['key_block_item'];
+
+        if(key_block == null){
+            item['key_block'] = ''
+        }else {
+
+            item['key_block'] = {'id':key_block['id'],
+                               'text':key_block['text'],
+                                'x':key_block['x'],
+                                'y':key_block['y']}
+        }
+
+        item['pre_label_text'] = field['pre_label_text']
 
         console.log('-----TODO: ', item )
 
         itemList.push(item)
 
     }
+
+    console.log(JSON.stringify(itemList))
+//    getData(itemList)
+
+    return itemList
+
 
 }
 
@@ -278,7 +344,6 @@ function input_pre_key(){
 */
 function redraw_blockItem(){
 
-    console.log("---------------   redraw_blockItem ")
     var pageNo = vue.pageNo ;
     var fieldList = vue.fieldList;
     if(fieldList == null || fieldList.length ==0 ){
@@ -291,7 +356,6 @@ function redraw_blockItem(){
     }
     var c=document.getElementById("myCanvas");
     var ctx=c.getContext("2d");
-    console.log("---------------   redraw_blockItem  2")
     for(var i=0; i<fieldList.length; i++){
 
 
@@ -299,7 +363,7 @@ function redraw_blockItem(){
         if(field['pageNo'] != pageNo){
             continue;
         }
-        console.log('field %s ', field['value_block_item']['text'])
+//        console.log('field %s ', field['value_block_item']['text'])
 
         var value_block_item = field['value_block_item']
         if(value_block_item != null){

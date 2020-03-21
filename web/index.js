@@ -1,6 +1,6 @@
 const EPSILON = 1e-14
-var page_width=1168;
-var page_height=1425;
+var page_width=960;
+var page_height=1200;
 var matrix = [1,0,0,1];
 var blockItemList ;
 /**
@@ -42,17 +42,11 @@ function parse_data_by_page(page){
 
     tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
     var theta = Math.atan(tan)
-    console.log("   %f   ", theta)
+    console.log(" theta =   %f   ", theta)
 
     //反方向旋转Theta
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]
 
-    var blockCount = blockList.length
-//    blockCount = 1  //测试 限制数量
-    for(i =0 ; i<blockCount; i++){
-       blockItem = create_block(blockList[i])
-       blockItemList.push(blockItem)
-    }
 
 
     /** 显示页面 **/
@@ -62,6 +56,8 @@ function parse_data_by_page(page){
     blockItemList = new Array()
 
     //计算旋转后坐标
+    var blockCount = blockList.length
+//    for(i =0 ; i<1; i++){
     for(i =0 ; i<blockCount; i++){
        blockItem = create_block(blockList[i])
        blockItemList.push(blockItem)
@@ -78,6 +74,7 @@ function parse_data_by_page(page){
     }
 
     // 重新加载其它页面已经选取过的元素
+
     redraw_blockItem()
 }
 
@@ -85,7 +82,6 @@ function parse_data_by_page(page){
 
 function create_block(block){
 
-    var text = block['Text']
     polyList = block['Geometry']['Polygon']
     polyArray = new Array()
 
@@ -98,6 +94,7 @@ function create_block(block){
         newPloy = matrix_rotate(matrix, ploy)
         newPloy['x'] =   newPloy['x']+ 0.5
         newPloy['y'] =   newPloy['y']+ 0.5
+//        console.log("-------------- %f, %f ", newPloy['x'], newPloy['y'])
 
         polyArray.push(newPloy)
     }
@@ -109,7 +106,9 @@ function create_block(block){
         polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
         blockType:0, // 1 valueBlock;  2 keyBlock
-        text:text
+        text:block['Text'],
+        x:(polyArray[2]['x'] + polyArray[0]['x']) / 2.0,
+        y:(polyArray[2]['y'] + polyArray[0]['y']) / 2.0
         };
 
     return blockItem
