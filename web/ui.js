@@ -1,5 +1,4 @@
 var vue ;
-var MIN_KEY_BLOCK_COUNT = 2 //最少的定位元素
 $(function(){
 
     vue = new Vue({
@@ -182,28 +181,8 @@ function add_field(){
     show_message("请填写对应的业务字段。")
     return ;
    }
-    //开始添加
-    currentField = {}
 
-    currentField['status']  = vue.currentField['status']
-    currentField['value_block_item']  = deepClone(vue.currentField['value_block_item'])
-
-
-
-    currentField['business_field']  = $("#business_field").val()
-    currentField['pageNo'] = vue.pageNo
-    currentField['pre_label_text'] = block_pre_value
-
-    currentField['value_block_item']['text']  = currentField['value_block_item']['text'].substring(block_pre_value.length)
-
-    currentField['key_block_item']  = deepClone(vue.currentField['key_block_item'])
-    if(currentField['key_block_item'] !=null){
-        currentField['key_label_text'] = vue.currentField['key_block_item']['text']
-    }else {
-        currentField['key_label_text'] = null
-    }
-
-    vue.fieldList.push(currentField)
+    vue.fieldList.push(create_single_filed())
 
     vue.currentField['status'] = 0
     vue.currentField['key_block_item'] = null
@@ -213,6 +192,40 @@ function add_field(){
     $("#business_field").val('')
     $("#block_pre_value").val('')
 }
+
+function create_single_filed(){
+
+        var item = {}
+        var field = vue.currentField
+
+        item['status']  = field['status']
+        item['page_no'] = vue.pageNo
+        item['business_field'] = $("#business_field").val()
+
+        var value_block = field['value_block_item'];
+        item['value_block'] = {'id':value_block['id'],
+                               'text':value_block['text'],
+                                'x':value_block['x'],
+                                'y':value_block['y']}
+
+        var key_block = field['key_block_item'];
+
+        if(key_block == null){
+            item['key_block'] = ''
+        }else {
+
+            item['key_block'] = {'id':key_block['id'],
+                               'text':key_block['text'],
+                                'x':key_block['x'],
+                                'y':key_block['y']}
+        }
+        item['pre_label_text'] = $("#block_pre_value").val()
+
+        console.log(JSON.stringify(item))
+
+        return item
+}
+
 
 function check_inside(blockItem, offsetX, offsetY){
         if( offsetX>blockItem['left'] && offsetX< blockItem['left'] + blockItem['width'] &&
@@ -256,15 +269,15 @@ function save_template(){
 
         if(field['pre_label_text'] != null && field['pre_label_text'].length >=0){
             locationItem['label_text'] = field['pre_label_text']
-            locationItem['x'] = field['value_block_item']['x']
-            locationItem['y'] = field['value_block_item']['x']
-            locationItem['id'] = field['value_block_item']['id']
+            locationItem['x'] = field['value_block']['x']
+            locationItem['y'] = field['value_block']['x']
+            locationItem['id'] = field['value_block']['id']
             locationItem['block_type'] = 0 //定位的类型， 用当前的元素位置和前缀字符串定位
         }else {
-            locationItem['label_text'] = field['key_block_item']['text']
-            locationItem['x'] = field['key_block_item']['x']
-            locationItem['y'] = field['key_block_item']['x']
-            locationItem['id'] = field['key_block_item']['id']
+            locationItem['label_text'] = field['key_block']['text']
+            locationItem['x'] = field['key_block']['x']
+            locationItem['y'] = field['key_block']['x']
+            locationItem['id'] = field['key_block']['id']
             locationItem['block_type'] = 1  //定位的类型， 用额外的元素定位
         }
 
@@ -282,7 +295,7 @@ function save_template(){
 
     var data = {}
     data['template'] = template;
-    data['fields'] = create_field_list();
+    data['fields'] = vue.fieldList;
 
 
     postData(CMD_SAVE_TEMPLATE, data)
@@ -291,59 +304,6 @@ function save_template(){
 
 
 }
-
-/**
-导出业务字段
-*/
-function create_field_list(){
-
-    var itemList = new Array()
-
-    /**
-    分两个表保存内容， 一个是模板汇总信息， 一个是field 字段
-    */
-
-    for (index in vue.fieldList){
-        var field = vue.fieldList[index]
-
-        var item = {}
-
-
-
-        item['page_no'] = field['pageNo']
-        item['business_field'] = field['business_field']
-
-        var value_block = field['value_block_item'];
-        item['value_block'] = {'id':value_block['id'],
-                               'text':value_block['text'],
-                                'x':value_block['x'],
-                                'y':value_block['y']}
-
-        var key_block = field['key_block_item'];
-
-        if(key_block == null){
-            item['key_block'] = ''
-        }else {
-
-            item['key_block'] = {'id':key_block['id'],
-                               'text':key_block['text'],
-                                'x':key_block['x'],
-                                'y':key_block['y']}
-        }
-
-        item['pre_label_text'] = field['pre_label_text']
-        itemList.push(item)
-
-    }
-
-    console.log(JSON.stringify(itemList))
-//    getData(itemList)
-
-    return itemList
-
-
-}
-
 /***
 将文本框的前缀元素提取出来， 用来进行定位
 */
@@ -390,17 +350,20 @@ function redraw_blockItem(){
 
 
         field = fieldList[i]
-        if(field['pageNo'] != pageNo){
+        if(field['page_no'] != pageNo){
             continue;
         }
-
-        var value_block_item = field['value_block_item']
+        var value_block_item = findBlockItemById(field['value_block']['id'])
         if(value_block_item != null){
+            value_block_item['selected'] = 1
+            value_block_item['blockType'] = 1
             _redraw_block(ctx, value_block_item)
         }
 
-        var key_block_item = field['key_block_item']
+        var key_block_item = findBlockItemById(field['key_block']['id'])
         if(key_block_item != null){
+            key_block_item['selected'] = 1
+            key_block_item['blockType'] = 2
             _redraw_block(ctx, key_block_item)
         }
 
@@ -440,20 +403,24 @@ function findBlockItemById(id ){
 }
 
 /**
-通过URL  重新绘制当前的template
+通过URL获取template 保存的field 数据
 */
 function select_template_display(template_id){
+    get_field_list(template_id)
+}
+
+function re_init_field_list(fieldList, template_id){
+    vue.fieldList = fieldList
     var templateList = vue.templateList;
 
     for (var i=0; i<templateList.length; i++){
-
         if(templateList[i]['id'] == template_id){
-
             url = templateList[i]['data_url']
-            console.log(url)
             get_data(url)
             break;
         }
     }
 
 }
+
+

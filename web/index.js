@@ -1,3 +1,11 @@
+var POST_URL = "https://94qmp9fmc3.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
+
+
+var CMD_SAVE_TEMPLATE = 'save_template'
+var CMD_GET_FIELD_LIST = 'get_field_list'
+var CMD_GET_TEMPLATE_LIST = 'get_template_list'
+var MIN_KEY_BLOCK_COUNT = 2 //最少的定位元素
+
 const EPSILON = 1e-14
 var page_width=960;
 var page_height=1200;
@@ -10,7 +18,7 @@ function parse_data(data){
     blockItemList = new Array();
 
     pageCount = parseInt(data['DocumentMetadata']['Pages'])
-    console.log('Pages:  %d', pageCount)
+
     vue.pageCount = pageCount
     vue.data = data
     parse_data_by_page(1)  // Demo 展示第一页
@@ -42,7 +50,7 @@ function parse_data_by_page(page){
 
     tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
     var theta = Math.atan(tan)
-    console.log(" theta =   %f   ", theta)
+    console.log("PageCount=%d,  tan  = %f,  theta =   %f   ", vue.pageCount , tan,  theta)
 
     //反方向旋转Theta
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]
@@ -221,7 +229,7 @@ function init_page_margin_block(blockList){
         page_margin['height_rate'] = 1.0/(page_bottom - page_top);
         page_margin['width_rate'] =  1.0/(page_right - page_left)  ;
 
-        console.log("page_margin", page_margin)
+        console.log("page_margin",  JSON.stringify(page_margin))
         return page_margin;
 
 }

@@ -130,7 +130,7 @@
                         <td style="padding:4px;" >业务字段</td>
                         <td style="padding:4px;" >定位元素</td>
                         <td style="padding:4px;" >提取元素</td>
-                        <td style="padding:4px;width:15%">[x,y]/页数</td>
+                        <td style="padding:4px;width:5%">页数</td>
                     </tr>
                     <tr v-for="(item, index) of fieldList" >
 <!--                        <td style="padding:4px;" ><small><span v-text="index + 1" ></span></small></td>-->
@@ -139,20 +139,16 @@
                         </td>
                         <td style="padding:4px;" >
                             <small>
-                                <template v-if="item.key_label_text !=null ">
-                                <span  v-if="item.key_label_text !=null " style="color:green" v-text="item.key_label_text"></span><br/>
-                                </template>
+                                <span v-if="item.key_block.text !=null && item.key_block.text != '' " style="color:green" v-text="item.key_block.text"></span>
                                 <span v-if="item.pre_label_text !=null " style="color:red" v-text="item.pre_label_text"></span>
 
                             </small>
                         </td>
                         <td style="padding:4px;" >
-                            <small><span v-text="item.value_block_item.text"></span></small>
+                            <small><span v-text="item.value_block.text"></span></small>
                         </td>
                         <td style="padding:4px;" >
-                            <small>[<span v-text="item.value_block_item.left   "></span>,
-                            <span v-text="item.value_block_item.top  "></span>]
-                            /<span v-text="item.pageNo  "></span>
+                            <small><span v-text="item.page_no  "></span>
                             </small>
                         </td>
                     </tr>
