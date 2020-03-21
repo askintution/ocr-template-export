@@ -19,7 +19,7 @@ class OcrInfraStack(core.Stack):
             billing_mode=aws_dynamodb.BillingMode.PAY_PER_REQUEST,
             removal_policy=core.RemovalPolicy.DESTROY, #开发阶段设置为 DESTROY， 正式环境设置为.RETAIN
             partition_key=aws_dynamodb.Attribute(
-                name="id",
+                name="template_type",
                 type=aws_dynamodb.AttributeType.STRING
             ),
             sort_key=aws_dynamodb.Attribute(
@@ -50,8 +50,8 @@ class OcrInfraStack(core.Stack):
                                               code=aws_lambda.Code.asset("./lambda/producer"))
         producer_lambda.add_environment("TABLE_TEMPLATE_NAME", template_table.table_name)
         producer_lambda.add_environment("TABLE_FIELD_NAME", field_table.table_name)
-        template_table.grant_write_data(producer_lambda)
-        field_table.grant_write_data(producer_lambda)
+        template_table.grant_read_write_data(producer_lambda)
+        field_table.grant_read_write_data(producer_lambda)
 
         # ---------------------api-gateway  GET -------------------- #
 

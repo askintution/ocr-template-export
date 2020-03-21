@@ -82,6 +82,24 @@ class DatabaseUtil:
         # print('item_list: ', item_list)
         self.__insert_batch_item(dynamodb, item_list)
 
+    def get_template_list(self, template_type):
+        dynamodb = boto3.resource('dynamodb')
+        table = dynamodb.Table(os.environ['TABLE_TEMPLATE_NAME'])
+        response = table.query(
+            KeyConditionExpression=Key('template_type').eq(template_type)
+        )
+        items = json.loads(json.dumps(response['Items'], indent=4, cls=DecimalEncoder))
+
+
+        for i in range(len(items)):
+            items[i]['location_items'] = json.loads(items[i]['location_items'])
+
+        print('get_template_list \n ', json.dumps(items))
+        return items
+
+
+
+
     def query_field_list(self, template_id):
         """
         单条数据
@@ -90,8 +108,7 @@ class DatabaseUtil:
         """
 
         dynamodb = boto3.resource('dynamodb')
-        TABLE_FIELD_NAME = os.environ['TABLE_FIELD_NAME']
-        table = dynamodb.Table(TABLE_FIELD_NAME)
+        table = dynamodb.Table(os.environ['TABLE_FIELD_NAME'])
         response = table.query(
             KeyConditionExpression=Key('template_id').eq(template_id)
         )
@@ -107,7 +124,6 @@ class DatabaseUtil:
             if items[i]['key_block'] == 'null':
                 items[i]['key_block'] = ''
             else:
-                print(type(items[i]['key_block']), '  ****   ', json.loads(items[i]['key_block']))
                 items[i]['key_block'] = json.loads(items[i]['key_block'])
             new_item_list.append(items[i])
 
@@ -138,16 +154,17 @@ if __name__ == "__main__":
 
 
     databaseUtil = DatabaseUtil()
-    field_list = databaseUtil.query_field_list('001c28b8-3daf-49b3-af8c-7490404700ca')
+    # field_list = databaseUtil.query_field_list('001c28b8-3daf-49b3-af8c-7490404700ca')
+    #
+    # print(field_list)
+    #
+    # for i in range(len(field_list)):
+    #     field = field_list[i]
+    #
+    #     print(type(field['key_block']))
+    #
+    #     if type(field['key_block']) is dict:
+    #         print(field['key_block']['x'], field['key_block']['y'])
 
-    print(field_list)
-
-    for i in range(len(field_list)):
-        field = field_list[i]
-
-        print(type(field['key_block']))
-
-        if type(field['key_block']) is dict:
-            print(field['key_block']['x'], field['key_block']['y'])
-
+    databaseUtil.get_template_list('default')
 

@@ -5,9 +5,10 @@ $(function(){
     vue = new Vue({
             el: '#main',
             data:{
-                blockItemList:[],
-                currentField:{},
-                fieldList:[],
+                blockItemList:[], //当前页面解析的block元素
+                currentField:{}, //用户新建的字段信息
+                fieldList:[],   //用户已经选取的业务字段
+                templateList:[],  // 模板列表L
                 pageCount:0,
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/ocr-demo.json",
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json",
@@ -17,6 +18,7 @@ $(function(){
              },methods:{
                 get_json:function(){
                     url = $("#json_url_input").val()
+                    alert(url)
                     get_data(url)
                 },
                 clean_current_field:function(){
@@ -30,26 +32,30 @@ $(function(){
                     parse_data_by_page(pageIndex)
                 },
                 save_template:function(){
-
                     save_template()
+                },
+                select_template_display:function(e){
+                    select_template_display(e.currentTarget._value)
                 }
              }
     })
 
     get_data(vue.data_url)
+    get_template_list()
 });
 
 
 
 function get_data(url){
-    console.log('url: ', url)
-    vue.data_url = url
+
     if(url == null || url == ''){
+        show_message(" 请填写 url ")
         return ;
     }
     $("#loading-icon").show()
     $.getJSON(url, function (data) {
         parse_data(data)
+        vue.data_url = url
         $("#loading-icon").hide()
         init_current_field()
 
@@ -248,15 +254,17 @@ function save_template(){
         var locationItem = {}
         field = vue.fieldList[i]
 
-        if(field['pre_label_text'] == null || field['pre_label_text'].length ==0){
+        if(field['pre_label_text'] != null && field['pre_label_text'].length >=0){
             locationItem['label_text'] = field['pre_label_text']
             locationItem['x'] = field['value_block_item']['x']
             locationItem['y'] = field['value_block_item']['x']
+            locationItem['id'] = field['value_block_item']['id']
             locationItem['block_type'] = 0 //定位的类型， 用当前的元素位置和前缀字符串定位
         }else {
             locationItem['label_text'] = field['key_block_item']['text']
             locationItem['x'] = field['key_block_item']['x']
             locationItem['y'] = field['key_block_item']['x']
+            locationItem['id'] = field['key_block_item']['id']
             locationItem['block_type'] = 1  //定位的类型， 用额外的元素定位
         }
 
@@ -266,6 +274,7 @@ function save_template(){
 
 
     var template = {}
+    template['template_type'] = 'default'   //TODO: 分区键， 以后模板可以先分大类， 然后再查询
     template['name'] = template_name
     template['data_url'] = vue.data_url
     template['location_items'] = locationItemList
@@ -277,8 +286,6 @@ function save_template(){
 
 
     postData(CMD_SAVE_TEMPLATE, data)
-//    console.log("from server :\n");
-//    console.log(JSON.stringify(data));
 
     show_message("正在保存中，请稍后")
 
@@ -300,6 +307,7 @@ function create_field_list(){
         var field = vue.fieldList[index]
 
         var item = {}
+
 
 
         item['page_no'] = field['pageNo']
@@ -324,9 +332,6 @@ function create_field_list(){
         }
 
         item['pre_label_text'] = field['pre_label_text']
-
-        console.log('-----TODO: ', item )
-
         itemList.push(item)
 
     }
@@ -388,7 +393,6 @@ function redraw_blockItem(){
         if(field['pageNo'] != pageNo){
             continue;
         }
-//        console.log('field %s ', field['value_block_item']['text'])
 
         var value_block_item = field['value_block_item']
         if(value_block_item != null){
@@ -433,4 +437,23 @@ function findBlockItemById(id ){
         }
     }
     return null
+}
+
+/**
+通过URL  重新绘制当前的template
+*/
+function select_template_display(template_id){
+    var templateList = vue.templateList;
+
+    for (var i=0; i<templateList.length; i++){
+
+        if(templateList[i]['id'] == template_id){
+
+            url = templateList[i]['data_url']
+            console.log(url)
+            get_data(url)
+            break;
+        }
+    }
+
 }
