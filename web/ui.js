@@ -267,18 +267,27 @@ function save_template(){
         var locationItem = {}
         field = vue.fieldList[i]
 
-        if(field['pre_label_text'] != null && field['pre_label_text'].length >=0){
+
+        console.log(" {}  ---------{}------- {} ", i, field['pre_label_text'], JSON.stringify(field['key_block']))
+        locationItem['page_no'] = field['page_no']
+        locationItem['business_field'] = field['business_field']
+        if(field['pre_label_text'] != null && field['pre_label_text'].length >0){
+            console.log("----------------- 1")
             locationItem['label_text'] = field['pre_label_text']
             locationItem['x'] = field['value_block']['x']
-            locationItem['y'] = field['value_block']['x']
+            locationItem['y'] = field['value_block']['y']
             locationItem['id'] = field['value_block']['id']
             locationItem['block_type'] = 0 //定位的类型， 用当前的元素位置和前缀字符串定位
-        }else {
+        }else  if(field['key_block'] != null && field['key_block']['text'] !=null){
+            console.log("----------------- 2")
             locationItem['label_text'] = field['key_block']['text']
             locationItem['x'] = field['key_block']['x']
-            locationItem['y'] = field['key_block']['x']
+            locationItem['y'] = field['key_block']['y']
             locationItem['id'] = field['key_block']['id']
             locationItem['block_type'] = 1  //定位的类型， 用额外的元素定位
+        }else {
+
+            show_message("字段出错， 请检查")
         }
 
         locationItemList.push(locationItem)

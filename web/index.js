@@ -1,16 +1,16 @@
 var POST_URL = "https://94qmp9fmc3.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
 
 
-var CMD_SAVE_TEMPLATE = 'save_template'
-var CMD_GET_FIELD_LIST = 'get_field_list'
-var CMD_GET_TEMPLATE_LIST = 'get_template_list'
-var MIN_KEY_BLOCK_COUNT = 2 //最少的定位元素
+var CMD_SAVE_TEMPLATE = 'save_template'   // 保存模板的请求命令
+var CMD_GET_FIELD_LIST = 'get_field_list' //  获取一个模板所有的字段
+var CMD_GET_TEMPLATE_LIST = 'get_template_list'   //或者特定类型的模板列表
+var MIN_KEY_BLOCK_COUNT = 3 //最少的定位元素
 
 const EPSILON = 1e-14
-var page_width=960;
-var page_height=1200;
-var matrix = [1,0,0,1];
-var blockItemList ;
+var page_width=960;  // 页面宽度
+var page_height=1200;  // 页面高度
+var matrix = [1,0,0,1];  //矩阵
+var blockItemList ;  // 当前页面已经解析的元素
 /**
 解析数据
 **/
@@ -50,7 +50,7 @@ function parse_data_by_page(page){
 
     tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
     var theta = Math.atan(tan)
-    console.log("PageCount=%d,  tan  = %f,  theta =   %f   ", vue.pageCount , tan,  theta)
+    console.log("PageCount=%d,  PageNo=%d,  tan  = %f,  theta =   %f   ", vue.pageCount , vue.pageNo, tan, theta)
 
     //反方向旋转Theta
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]

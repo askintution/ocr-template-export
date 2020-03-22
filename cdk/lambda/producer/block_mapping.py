@@ -3,7 +3,7 @@ import math
 import numpy as np
 from urllib.request import Request, urlopen
 
-single_block_dist_sqrt = math.sqrt(0.05 ** 2 + 0.05 ** 2)
+single_block_dist_square_root = math.sqrt(0.05 ** 2 + 0.05 ** 2)
 
 
 class BlockMapping:
@@ -39,7 +39,7 @@ class BlockMapping:
             if self.data_['Blocks'][i]['Page'] == page_no and self.data_['Blocks'][i]['BlockType'] == 'LINE':
                 block_list.append(self.data_['Blocks'][i])
         self.block_list_ = block_list
-        print("【message】 Page=[{}] block list length: {} ".format(page_no, len(block_list)))
+        # print("【message】 Page=[{}] block list length: {} ".format(page_no, len(block_list)))
         T = self._init_rotate_matrix()  # 得到页面旋转的矩阵
         block_item_list = []
         for i in range(len(self.block_list_)):
@@ -117,7 +117,7 @@ class BlockMapping:
         point_b = max_width_block['Geometry']['Polygon'][1]
         tan = (point_b['Y'] - point_a['Y']) / ((point_b['X'] - point_a['X']))
         theta = math.atan(tan)
-        print('tan = {}\t theta = {} '.format(tan, theta))
+        # print('tan = {}\t theta = {} '.format(tan, theta))
         T = np.array([[math.cos(theta), math.sin(theta)],
                       [-math.sin(theta), math.cos(theta)]])
         return T
@@ -155,28 +155,71 @@ class BlockMapping:
                        'height_rate': 1.0 / (page_bottom - page_top),
                        'width_rate': 1.0 / (page_right - page_left)}
 
-        print("page_margin ", page_margin)
+        # print("page_margin ", page_margin)
         return page_margin;
 
-    def find_single_block_item_by_poz(self, point, key):
+    def find_single_block_item_by_poz(self, point):
         """
         单个元素查找， 误差范围可以大一些， 因为还有关键字的判断。
         """
-        px = point[0]
-        py = point[1]
+        px = point['x']
+        py = point['y']
+        key = point['label_text']
         for i in range(len(self.blockItemList_)):
-            blockItem = self.blockItemList_[i]
-            x = blockItem['x']
-            y = blockItem['y']
+            block_item = self.blockItemList_[i]
+            x = block_item['x']
+            y = block_item['y']
 
-            if math.sqrt((x - px) ** 2 + (y - py) ** 2) < single_block_dist_sqrt and key == blockItem['text']:
-                print("find block [{}] [x={} y={}] ".format(blockItem['text'], x, y))
+            text = block_item['text']
+            if text is None or len(text) <= 0:
+                continue
 
+            text = text[0:len(key)]
+
+            if math.sqrt((x - px) ** 2 + (y - py) ** 2) < single_block_dist_square_root and key == text:
+                print("find block [{}] [x={} y={}]    [px: {}  py: {}]".format(block_item['text'], x, y, px, py))
+                return True
+        return False
+
+
+
+    def match_template(self, template_list):
+
+        if len(template_list) == 0:
+            return None
+
+        for i in range(len(template_list)):
+
+            template = template_list[i]
+            find_template_flag = True
+            for j in range(len(template['location_items'])):
+
+                location = template['location_items'][j]
+
+                self.init_block_list_by_page(location['page_no'])
+                if self.find_single_block_item_by_poz(location) is False:
+                    # 当前模板不匹配， 结束当前循环
+                    find_template_flag = False
+                    break
+
+            if find_template_flag:
+                return template
+
+        return None
+
+
+
+    def export_field_list(self, template):
+        print(" export_field_list  TODO:  ", json.dumps(template))
 
 if __name__ == '__main__':
     blockMapping = BlockMapping('https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json')
     blockMapping.init_block_list_by_page(1)
     blockItem = blockMapping.find_block_item_by_id("553de437-84e8-484b-adda-2247d0e48037")
     print('center: {} , {} '.format(blockItem['x'], blockItem['y']))
-    blockMapping.find_single_block_item_by_poz([0.694645, 0.465083], 'Net amount')
+
+    pointA = {'x': 0.694645, 'y': 0.465083, 'text': 'Net amount'}
+    pointB = {'x': 0.889703, 'y': 0.734236, 'text': 'GROSS VALUE'}
+
+    blockMapping.find_single_block_item_by_poz()
     blockMapping.find_single_block_item_by_poz([0.889703, 0.734236], 'GROSS VALUE')
