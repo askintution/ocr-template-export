@@ -300,6 +300,7 @@ function save_template(){
     template['name'] = template_name
     template['data_url'] = vue.data_url
     template['location_items'] = locationItemList
+    template['page_count'] = vue.pageCount
 
 
     var data = {}

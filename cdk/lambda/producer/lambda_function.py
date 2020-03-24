@@ -35,7 +35,8 @@ def lambda_handler(event, context):
     database = DatabaseUtil()
 
     if cmd == "save_template":
-        database.save_template(event['data'])
+        data = database.save_template(event['data'])
+        return {'statusCode': 200, 'data': data, 'message': 'OK'}
     elif cmd == "get_field_list":
         data = database.query_field_list(event['template_id'])
         return {'statusCode': 200, 'data': data, 'message': 'OK'}
@@ -86,3 +87,6 @@ if __name__ == "__main__":
 
     event = json.loads(event_data_str)
     lambda_handler(event, None)
+
+
+

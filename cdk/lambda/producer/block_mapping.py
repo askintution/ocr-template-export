@@ -1,6 +1,5 @@
 import json
 import math
-import numpy as np
 from urllib.request import Request, urlopen
 
 single_block_dist_square_root = math.sqrt(0.05 ** 2 + 0.05 ** 2)
@@ -69,7 +68,8 @@ class BlockMapping:
         for i in range(len(poly_list)):
             x = poly_list[i]['X'] - 0.5
             y = poly_list[i]['Y'] - 0.5
-            P = np.dot(T, np.array([x, y]))
+            # P = np.dot(T, np.array([x, y]))
+            P = self.array_dot(T, [x, y])
             P[0] += 0.5
             P[1] += 0.5
             poly_array.append({'x': P[0], 'y': P[1]})
@@ -118,8 +118,8 @@ class BlockMapping:
         tan = (point_b['Y'] - point_a['Y']) / ((point_b['X'] - point_a['X']))
         theta = math.atan(tan)
         # print('tan = {}\t theta = {} '.format(tan, theta))
-        T = np.array([[math.cos(theta), math.sin(theta)],
-                      [-math.sin(theta), math.cos(theta)]])
+        T = [[math.cos(theta), math.sin(theta)],
+                      [-math.sin(theta), math.cos(theta)]]
         return T
 
     def _init_page_margin_block(self, block_item_list):
@@ -181,6 +181,12 @@ class BlockMapping:
                 return True
         return False
 
+    def array_dot(self, T, P):
+        # np.dot(T, np.array([x, y]))
+        return [(T[0][0] * P[0] + T[0][1] * P[1]), (T[1][0] * P[0] + T[1][1] * P[1])]
+
+
+
 
 
     def match_template(self, template_list):
@@ -212,14 +218,31 @@ class BlockMapping:
     def export_field_list(self, template):
         print(" export_field_list  TODO:  ", json.dumps(template))
 
+
 if __name__ == '__main__':
     blockMapping = BlockMapping('https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json')
     blockMapping.init_block_list_by_page(1)
-    blockItem = blockMapping.find_block_item_by_id("553de437-84e8-484b-adda-2247d0e48037")
-    print('center: {} , {} '.format(blockItem['x'], blockItem['y']))
+    _block_id = "553de437-84e8-484b-adda-2247d0e48037"
+    blockItem = blockMapping.find_block_item_by_id(_block_id)
+    print('block_id: {}    center: {} , {} '.format(_block_id, blockItem['x'], blockItem['y']))
 
     pointA = {'x': 0.694645, 'y': 0.465083, 'text': 'Net amount'}
     pointB = {'x': 0.889703, 'y': 0.734236, 'text': 'GROSS VALUE'}
 
-    blockMapping.find_single_block_item_by_poz()
-    blockMapping.find_single_block_item_by_poz([0.889703, 0.734236], 'GROSS VALUE')
+
+    # T = np.array([[1, 2],
+    #               [3, 4]])
+    # P = np.array([1, 2])
+    #
+    # P2 = np.dot(T, P)
+    # print(P2)
+    #
+    #
+    # T = [[1, 2],[3, 4]]
+    # P = [1, 2]
+    #
+    # P3 = [(T[0][0] * P[0] + T[0][1] * P[1]), (T[1][0] * P[0] + T[1][1] * P[1])]
+    # print(P3)
+
+
+

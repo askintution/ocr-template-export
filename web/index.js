@@ -4,24 +4,26 @@ var POST_URL = "https://94qmp9fmc3.execute-api.cn-northwest-1.amazonaws.com.cn/p
 var CMD_SAVE_TEMPLATE = 'save_template'   // 保存模板的请求命令
 var CMD_GET_FIELD_LIST = 'get_field_list' //  获取一个模板所有的字段
 var CMD_GET_TEMPLATE_LIST = 'get_template_list'   //或者特定类型的模板列表
-var MIN_KEY_BLOCK_COUNT = 3 //最少的定位元素
+var MIN_KEY_BLOCK_COUNT = 3 //一个模板最少的定位元素
 
-const EPSILON = 1e-14
 var page_width=960;  // 页面宽度
 var page_height=1200;  // 页面高度
 var matrix = [1,0,0,1];  //矩阵
 var blockItemList ;  // 当前页面已经解析的元素
 /**
-解析数据
+解析ajax 返回的数据
 **/
 function parse_data(data){
     blockItemList = new Array();
-
     pageCount = parseInt(data['DocumentMetadata']['Pages'])
+    vue.pageCount = pageCount //当前文档总页数
+    vue.data = data   //保存数据
+    if (pageCount>0){
+        parse_data_by_page(1)  // Demo 展示第一页
+    }else {
+        show_message("该文档 没有内容")
+    }
 
-    vue.pageCount = pageCount
-    vue.data = data
-    parse_data_by_page(1)  // Demo 展示第一页
 }
 
 /**
@@ -31,31 +33,30 @@ function parse_data_by_page(page){
     var data = vue.data
     var blockList = new Array()
     var index = 0
-    vue.pageNo = page
+    vue.pageNo = page //当前页码
 
     //换页时， 清空现在选择的字段。
     clean_current_field()
-    // 将所有行的元素取出来
+    // 将所有'行'的元素取出来
     for (i =0 ; i<data['Blocks'].length ; i++){
         if(data['Blocks'][i]['Page'] == page  && data['Blocks'][i]['BlockType']=='LINE'
-//        && data['Blocks'][i]['Confidence']>99
-        ){
+//        && data['Blocks'][i]['Confidence']>99){
             blockList[index] = data['Blocks'][i]
             index++
         }
     }
+
+    // 取出最长的元素， 找到旋转角度， 让它保持水平。
      var max_width_block = find_max_width_block(blockList)
      pointA = max_width_block['Geometry']['Polygon'][0]
      pointB = max_width_block['Geometry']['Polygon'][1]
 
     tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
     var theta = Math.atan(tan)
-    console.log("PageCount=%d,  PageNo=%d,  tan  = %f,  theta =   %f   ", vue.pageCount , vue.pageNo, tan, theta)
+    console.log("PageCount=%d,  PageNo=%d,  tan = %f,  theta =   %f   ", vue.pageCount , vue.pageNo, tan, theta)
 
     //反方向旋转Theta
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]
-
-
 
     /** 显示页面 **/
     var c=document.getElementById("myCanvas");
@@ -71,6 +72,7 @@ function parse_data_by_page(page){
        blockItemList.push(blockItem)
     }
 
+
     var page_margin = init_page_margin_block(blockItemList)
 
     vue.blockItemList = blockItemList
@@ -81,13 +83,16 @@ function parse_data_by_page(page){
         draw_block_inside(ctx, blockItem, 0)
     }
 
-    // 重新加载其它页面已经选取过的元素
+    // 重新加载其它页面已经选取过的元素， 例如加载已经有的模板， 或者翻页。
 
     redraw_blockItem()
 }
 
 
 
+/**
+计算所有元素经过旋转以后的新坐标
+*/
 function create_block(block){
 
     polyList = block['Geometry']['Polygon']
@@ -123,6 +128,9 @@ function create_block(block){
 }
 
 
+/**
+删除空白区域以后， 把现有元素等比例放大， 占满空间
+*/
 function zoom_layout_block(blockItem , page_margin){
 
         var page_top = page_margin['top']
@@ -150,11 +158,11 @@ function draw_block_inside(ctx, blockItem){
 
     ctx.beginPath();
     ctx.clearRect(blockItem['left']-3,blockItem['top']-3,blockItem['width']+6,blockItem['height']+6);
-    if(blockItem['selected'] == 1){
+    if(blockItem['selected'] == 1){ // 已经选择
 //    blockType
-        if(blockItem['blockType'] ==1){
+        if(blockItem['blockType'] ==1){  // 值类型
             ctx.strokeStyle="red";
-        }else if(blockItem['blockType'] ==2){
+        }else if(blockItem['blockType'] ==2){ // 定位类型元素
             ctx.strokeStyle="green";
         }
     }else {

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>AWS CDK ELK DEMO</title>
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://v3.bootcss.com/examples/signin/signin.css" rel="stylesheet" />
+    <link href="a.css" rel="stylesheet" />
+</head>
+
+<body>
+
+<!-- Begin page content -->
+<div class="container" id="main">
+    <div class="page-header">
+        <h1>OCR 识别文件匹配</h1>
+    </div>
+    <form class="form-inline">
+        <div class="form-group">
+            <label class="sr-only" for="data_url"></label>
+            <div class="input-group">
+                <input type="text" style="width:500px" class="form-control" id="data_url"  placeholder="请填写OCR识别结果的URL访问地址"   />
+            </div>
+        </div>
+        <button type="button" class="btn btn-primary"  v-on:click="match_template()">匹配模板</button>
+    </form>
+    <p><span>&nbsp;</span></p>
+    <p><textarea style="width:65%;height:350px" v-model="log_text_area"></textarea> </p>
+    <p><span>&nbsp;</span></p>
+
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <p class="text-muted">
+            <span>&nbsp;&nbsp;&nbsp;</span>
+        </p>
+    </div>
+</footer>
+
+
+</body>
+
+
+<script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://v3.bootcss.com/assets/js/vendor/holder.min.js"></script>
+<script src="https://v3.bootcss.com/assets/js/ie10-viewport-bug-workaround.js"></script>
+<script src="http://apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<script src="a.js"></script>
+</html>
