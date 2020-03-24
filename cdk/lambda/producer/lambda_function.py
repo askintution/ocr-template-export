@@ -51,8 +51,10 @@ def lambda_handler(event, context):
         print("lambda match_template  {}".format(json.dumps(template)))
         if template is None:
             return {'statusCode': 400, 'data': '', 'message': '没有找到适合的模板'}
-        data = block_mapping.export_field_list(template)
 
+        field_list = database.query_field_list(template['id'])
+        field_items = block_mapping.export_field_list(template, field_list)
+        data = {"template": template, "field_item": field_items}
         return {'statusCode': 200, 'data': data, 'message': 'OK'}
     else:
         return {'statusCode': 200, 'data': event, 'message': 'Unknown Command [{}]'.format(cmd)}

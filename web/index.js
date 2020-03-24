@@ -39,8 +39,7 @@ function parse_data_by_page(page){
     clean_current_field()
     // 将所有'行'的元素取出来
     for (i =0 ; i<data['Blocks'].length ; i++){
-        if(data['Blocks'][i]['Page'] == page  && data['Blocks'][i]['BlockType']=='LINE'
-//        && data['Blocks'][i]['Confidence']>99){
+        if(data['Blocks'][i]['Page'] == page  && data['Blocks'][i]['BlockType']=='LINE'){
             blockList[index] = data['Blocks'][i]
             index++
         }

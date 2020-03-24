@@ -24,7 +24,7 @@
         <div class="form-group">
             <label class="sr-only" for="data_url"></label>
             <div class="input-group">
-                <input type="text" style="width:500px" class="form-control" id="data_url"  placeholder="请填写OCR识别结果的URL访问地址"   />
+                <input type="text" style="width:500px" class="form-control" id="data_url"  v-model="data_url" placeholder="请填写OCR识别结果的URL访问地址"   />
             </div>
         </div>
         <button type="button" class="btn btn-primary"  v-on:click="match_template()">匹配模板</button>

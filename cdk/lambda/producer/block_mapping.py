@@ -2,7 +2,10 @@ import json
 import math
 from urllib.request import Request, urlopen
 
-single_block_dist_square_root = math.sqrt(0.05 ** 2 + 0.05 ** 2)
+single_block_dist_square_root = math.sqrt(0.04 ** 2 + 0.04 ** 2)
+
+#计算相对坐标， 距离可以小一些
+multi_block_dist_square_root = math.sqrt(0.015 ** 2 + 0.015 ** 2)
 
 
 class BlockMapping:
@@ -32,6 +35,10 @@ class BlockMapping:
         block_list = []
         assert page_no < self.page_count, \
             "The number of pages is out of range[1, {}]".format(self.page_count)
+
+        if page_no == self.page_no:
+            # print("current page is {}".format(self.page_no))
+            return
 
         self.page_no = page_no
         for i in range(len(self.data_['Blocks'])):
@@ -178,15 +185,12 @@ class BlockMapping:
 
             if math.sqrt((x - px) ** 2 + (y - py) ** 2) < single_block_dist_square_root and key == text:
                 print("find block [{}] [x={} y={}]    [px: {}  py: {}]".format(block_item['text'], x, y, px, py))
-                return True
-        return False
+                return block_item
+        return None
 
     def array_dot(self, T, P):
         # np.dot(T, np.array([x, y]))
         return [(T[0][0] * P[0] + T[0][1] * P[1]), (T[1][0] * P[0] + T[1][1] * P[1])]
-
-
-
 
 
     def match_template(self, template_list):
@@ -203,7 +207,7 @@ class BlockMapping:
                 location = template['location_items'][j]
 
                 self.init_block_list_by_page(location['page_no'])
-                if self.find_single_block_item_by_poz(location) is False:
+                if self.find_single_block_item_by_poz(location) is None:
                     # 当前模板不匹配， 结束当前循环
                     find_template_flag = False
                     break
@@ -213,10 +217,64 @@ class BlockMapping:
 
         return None
 
-
-
-    def export_field_list(self, template):
+    def export_field_list(self, template, field_list):
         print(" export_field_list  TODO:  ", json.dumps(template))
+        business_item_list = []
+        for field in field_list:
+            page_no = field['page_no']
+            pre_label_text = field['pre_label_text']
+            self.init_block_list_by_page(page_no)
+
+            business_item = {}
+            business_item['name'] = field['business_field']
+
+            if pre_label_text != "":
+                print("\t1 field: {}\t".format(json.dumps(field)))
+                point = {"label_text": pre_label_text,
+                         "x": field['value_block']['x'],
+                         "y": field['value_block']['y']}
+                block_item = self.find_single_block_item_by_poz(point)
+                business_item['value'] = block_item['text'][len(pre_label_text):]
+            else:
+                print("\t2 field: {}\t".format(json.dumps(field)))
+                business_item['value'] = self._location_value_block(field)
+
+            business_item_list.append(business_item)
+
+        print("\n ", json.dumps(business_item_list))
+        return business_item_list
+
+
+    def _location_value_block(self, field):
+        """
+        通过Key 元素定位value 元素
+        :param field:
+        :return:
+        """
+        value_block = field['value_block']
+        key_block = field['key_block']
+
+        x = key_block['x'] - value_block['x']
+        y = key_block['y'] - value_block['y']
+        # 计算相对坐标
+        point = {"label_text": key_block['text'],
+                 "x": key_block['x'],
+                 "y": key_block['y']}
+        key_block_item = self.find_single_block_item_by_poz(point)
+        px = key_block_item['x'] - x
+        py = key_block_item['y'] - y
+
+        for i in range(len(self.blockItemList_)):
+            block_item = self.blockItemList_[i]
+            x = block_item['x']
+            y = block_item['y']
+
+            if math.sqrt((x - px) ** 2 + (y - py) ** 2) < multi_block_dist_square_root:
+                print("----find block [{}] [x={} y={}]    [px: {}  py: {}]".format(block_item['text'], x, y, px, py))
+                return block_item['text']
+        return ""
+
+
 
 
 if __name__ == '__main__':
