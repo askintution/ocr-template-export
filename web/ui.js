@@ -10,7 +10,9 @@ $(function(){
                 templateList:[],  // 模板列表L
                 pageCount:0,
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/ocr-demo.json",
-                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json",
+//
+//                https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/01_01.json",
                 data:{},
                 pageNo:0,
 
@@ -34,7 +36,9 @@ $(function(){
                     save_template()
                 },
                 select_template_display:function(e){
+//                    alert("bbb")
                     select_template_display(e.currentTarget._value)
+
                 }
              }
     })

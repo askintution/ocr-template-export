@@ -1,6 +1,5 @@
 var POST_URL = "https://94qmp9fmc3.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
 
-
 var CMD_SAVE_TEMPLATE = 'save_template'   // 保存模板的请求命令
 var CMD_GET_FIELD_LIST = 'get_field_list' //  获取一个模板所有的字段
 var CMD_GET_TEMPLATE_LIST = 'get_template_list'   //或者特定类型的模板列表
