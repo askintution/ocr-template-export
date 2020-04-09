@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
 
     event_data_str = """
-    {"cmd":"match_template","template_type":"default",  "data_url":"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json"}
+    {"cmd":"match_template","template_type":"default",  "data_url":"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/02_03.json"}
     """
 
     event = json.loads(event_data_str)

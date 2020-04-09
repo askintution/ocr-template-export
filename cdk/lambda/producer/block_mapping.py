@@ -33,7 +33,7 @@ class BlockMapping:
         初始化元素
         """
         block_list = []
-        assert page_no < self.page_count, \
+        assert page_no <= self.page_count, \
             "The number of pages is out of range[1, {}]".format(self.page_count)
 
         if page_no == self.page_no:
