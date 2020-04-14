@@ -77,3 +77,8 @@ String.format = function(src){
       });
 
 };
+
+
+function print(message){
+    console.log(message)
+}
