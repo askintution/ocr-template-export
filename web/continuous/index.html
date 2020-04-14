@@ -8,7 +8,7 @@
     <meta name="description" content="" />
     <meta name="author" content="" />
 
-    <title>OCR分析</title>
+    <title>OCR流式模板</title>
     <link href="./style.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
@@ -28,7 +28,7 @@
 
             </div>
             <div class="col-4 text-center">
-                <h3>OCR 模板生成</h3>
+                <h3>OCR流式模板</h3>
             </div>
             <div class="col-4 d-flex justify-content-end align-items-center">
                 <a class="btn btn-sm btn-outline-secondary" href="#">Sign up</a>
@@ -63,14 +63,88 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-8" class="overflow-auto"  >
+        <div class="col-md-7" class="overflow-auto"  >
             <canvas id="myCanvas" width="960" height="1200"
                   style="border:1px solid #000000;">
         </canvas>
         </div>
 
         <!-- Right Start -->
-        <div class="col-md-4">
+        <div class="col-md-5">
+
+            <div>
+                <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加表格</button>
+                <button type="button" class="btn btn-primary" v-on:click="add_field()">添加字段</button>
+            </div>
+
+
+            <div  class="jumbotron" style="margin-top:20px;padding-top:30px;padding-bottom:20px" v-for="tableBlock of tableBlockList" >
+
+                <h6>Table <span v-text="tableBlock.id"></span></h6>
+                <ul>
+                    <li><small>点击选择要选取的列</small></li>
+                    <li><small>确认选择的元素是表格的表头， 并且在同一水平线上</small></li>
+                </ul>
+                <div  >
+                    <table width="60%" style="font-size:13px;">
+                        <tr>
+                            <th width="10%"> Id</th>
+                            <th width="40%">名称</th>
+                            <th width="10%">多行</th>
+                            <th width="15%">操作</th>
+                        </tr>
+
+                        <tr v-for="(thItem, index) of tableBlock.thItems" >
+                            <td><span  v-text="index + 1" /></td>
+                            <td><span  v-text="thItem.text" /></td>
+                            <td>&nbsp;<input   type="checkbox"  /></td>
+                            <td><a href="#" >删除</a></td>
+
+                        </tr>
+
+
+                    </table>
+
+
+                </div>
+
+                <div style="margin-top:10px">
+                    <button type="button" class="btn btn-primary">
+                        创建表格 <span class="badge badge-light">4</span>
+                    </button>
+                    <button type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
+                            v-bind:name="tableBlock.id" >删除表格</button>
+
+                </div>
+
+                <table class="table-bordered" style="font-size:14px;margin-top:30px"  v-for="tableItem of tableBlock.tableItems" >
+                    <tr >
+                        <th v-for="thItem of tableBlock.thItems" style="padding:4px" width="25%" >
+                            <span v-text="thItem" style="padding:4px"></span>
+                        </th>
+                    </tr>
+
+
+                    <tr v-for="row of tableItem.rowList" >
+                        <td v-for="tdItem of row" style="padding:2px" width="25%" >
+                            <input  v-model="tdItem.value" style="width:100%"  v-if="tdItem.type  == 0" />
+
+                            <textarea  v-model="tdItem.value" rows="3" v-if="tdItem.type != 0" ></textarea>
+                        </td>
+
+
+
+
+                    </tr>
+
+                </table>
+
+
+            </div>
+
+
+
+
 
         </div>
 

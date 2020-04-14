@@ -6,11 +6,9 @@ var CMD_GET_TEMPLATE_LIST = 'get_template_list'   //或者特定类型的模板�
 var MIN_KEY_BLOCK_COUNT = 3 //一个模板最少的定位元素
 
 var page_width=960;  // 页面宽度
-var page_height=2000;  // 页面高度
+var page_height=2000;  // 每一页，页面高度
 var matrix = [1,0,0,1];  //矩阵
 
-var document_page_width = 0.0  //文档的宽度， 等于第一页的宽度
-var document_page_height = 0.0  //文档的累计高度
 /**
 解析ajax 返回的数据
 **/
@@ -26,8 +24,9 @@ function parse_data(data){
     }
 
 
-    margin_document_top = 0.0
-    var blockItemList =  new Array()
+    var margin_document_top = 0.0 // 累计文档高度
+    var blockItemList =  new Array()  //保存所有元素的列表
+    var document_page_height = 0.0  //文档的累计高度
 
     //按照页数解析所有页面元素， 并且把它们拼接到一起
     for (count=0 ; count< pageCount; count++){
@@ -49,9 +48,10 @@ function parse_data(data){
     }
 
 
-    reset_canvas(page_width , page_height* document_page_height)
-
-
+    var document_zoom_out_height = page_height* document_page_height
+    reset_canvas(page_width , document_zoom_out_height)
+    console.log('Canvas size=[%f , %f]  document height %f ',
+    page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
     /** 显示页面 **/
     var c=document.getElementById("myCanvas");
@@ -61,7 +61,7 @@ function parse_data(data){
 
      //对元素进行缩放
      for(i =0 ; i<blockItemList.length; i++){
-            zoom_layout_block(blockItemList[i])
+            zoom_layout_block(blockItemList[i], document_zoom_out_height)
      }
     // 绘制元素
      for(i =0 ; i<blockItemList.length; i++){
@@ -71,26 +71,7 @@ function parse_data(data){
 
 }
 
-/**
-把现有元素等比例放大， 占满空间
-*/
-function zoom_layout_block(blockItem){
 
-    var polyArray  = blockItem['newPoly']
-    for (var i=0; i<polyArray.length; i++){
-
-        var poly = polyArray[i];
-
-        poly['x'] = poly['x']  * page_width
-        poly['y'] = poly['y']  * page_height * document_page_height
-    }
-    blockItem['width'] = (polyArray[1]['x'] - polyArray[0]['x'])
-    blockItem['height'] = (polyArray[3]['y'] - polyArray[0]['y'])
-    blockItem['left'] = polyArray[0]['x']
-    blockItem['top'] = polyArray[0]['y']
-    blockItem['x'] = (polyArray[2]['x'] + polyArray[0]['x']) / 2.0
-    blockItem['y'] = (polyArray[2]['y'] + polyArray[0]['y']) / 2.0
-}
 
 function reset_canvas(width, height){
     var canvas=document.getElementById("myCanvas");
@@ -143,12 +124,6 @@ function parse_data_by_page(page, margin_document_top){
 
     var page_margin = init_page_margin_block(block_item_list)
 
-    //用第一个页的宽度， 设置为整个文档的宽度
-    if(page == 1){
-        document_page_width = page_margin['right'] -  page_margin['left']
-    }
-
-
     // 添加Margin Top， 把所有页面合并到一页
     for(i =0 ; i<block_item_list.length ; i++){
         var blockItem = block_item_list[i]
@@ -167,8 +142,8 @@ function parse_data_by_page(page, margin_document_top){
 */
 function create_block(block){
 
-    polyList = block['Geometry']['Polygon']
-    polyArray = new Array()
+    var polyList = block['Geometry']['Polygon']
+    var polyArray = new Array()
 
     //对坐标按照原点进行旋转
     for(j=0; j<polyList.length; j++){
@@ -180,12 +155,16 @@ function create_block(block){
         newPloy['x'] =   newPloy['x']+ 0.5
         newPloy['y'] =   newPloy['y']+ 0.5
         polyArray.push(newPloy)
+
+
     }
+
 
 //    封装block 元素， 供页面显示
     var blockItem = {
         id:block['Id'],
         newPoly:polyArray,
+//        polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
         blockType:0, // 1 valueBlock;  2 keyBlock
         text:block['Text']
@@ -208,6 +187,28 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
         poly['y'] = poly['y'] -  page_top +  margin_document_top
     }
 
+
+}
+
+/**
+把现有元素等比例放大， 占满空间
+*/
+function zoom_layout_block(blockItem, document_zoom_out_height){
+
+    var polyArray  = blockItem['newPoly']
+    for (var i=0; i<polyArray.length; i++){
+        var poly = polyArray[i];
+        poly['x'] = parseInt(poly['x']  * page_width)
+        poly['y'] = parseInt(poly['y']  * page_height)
+
+
+    }
+    blockItem['width'] = parseInt(polyArray[1]['x'] - polyArray[0]['x'])
+    blockItem['height'] = parseInt(polyArray[3]['y'] - polyArray[0]['y'])
+    blockItem['left'] = polyArray[0]['x']
+    blockItem['top'] = polyArray[0]['y']
+    blockItem['x'] = parseInt((polyArray[2]['x'] + polyArray[0]['x']) / 2.0)
+    blockItem['y'] = parseInt((polyArray[2]['y'] + polyArray[0]['y']) / 2.0)
 }
 
 /**
@@ -295,6 +296,7 @@ function init_page_margin_block(blockItemList){
         page_margin['bottom'] = page_bottom;
         page_margin['left'] = page_left;
         page_margin['right'] = page_right;
+        page_margin['height'] = page_bottom - page_top;
 
 
         page_margin['height_rate'] = 1.0/(page_bottom - page_top);
