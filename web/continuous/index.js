@@ -207,6 +207,8 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
     blockItem['height'] = parseInt(polyArray[3]['y'] - polyArray[0]['y'])
     blockItem['left'] = polyArray[0]['x']
     blockItem['top'] = polyArray[0]['y']
+    blockItem['right'] = polyArray[1]['x']
+    blockItem['bottom'] = polyArray[2]['y']
     blockItem['x'] = parseInt((polyArray[2]['x'] + polyArray[0]['x']) / 2.0)
     blockItem['y'] = parseInt((polyArray[2]['y'] + polyArray[0]['y']) / 2.0)
 }

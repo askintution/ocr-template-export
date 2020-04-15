@@ -97,7 +97,7 @@
                         <tr v-for="(thItem, index) of tableBlock.thItems" >
                             <td><span  v-text="index + 1" /></td>
                             <td><span  v-text="thItem.text" /></td>
-                            <td>&nbsp;<input   type="checkbox"  /></td>
+                            <td><input   type="checkbox"  v-model="thItem.multi_line" /></td>
                             <td><a href="#" >删除</a></td>
 
                         </tr>
@@ -109,8 +109,8 @@
                 </div>
 
                 <div style="margin-top:10px">
-                    <button type="button" class="btn btn-primary">
-                        创建表格 <span class="badge badge-light">4</span>
+                    <button type="button" class="btn btn-primary"  v-on:click="create_table_template()" >
+                        创建表格 <span class="badge badge-light"  v-text="tableBlock.thItems.length"></span>
                     </button>
                     <button type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
                             v-bind:name="tableBlock.id" >删除表格</button>
@@ -120,7 +120,7 @@
                 <table class="table-bordered" style="font-size:14px;margin-top:30px"  v-for="tableItem of tableBlock.tableItems" >
                     <tr >
                         <th v-for="thItem of tableBlock.thItems" style="padding:4px" width="25%" >
-                            <span v-text="thItem" style="padding:4px"></span>
+                            <span v-text="thItem.text" style="padding:4px"></span>
                         </th>
                     </tr>
 
