@@ -29,74 +29,30 @@ $(function(){
                 }
              }
     })
-
-
-//    reset_canvas()
     get_data(vue.data_url)
-//    testInitTableBlockList()
-//    get_template_list()
 });
 
 
 /**
 
---tableBlockList
-  --tableBlock
-    --id
-    --item_width
-    --thItems  // 列名称
-    --tableItems
-      --rowList
-        --row
-          --td
-            --type
-            --value
+Vue  对象的结构
+--tableBlockList[]
+  --tableBlock{}
+    --id  //text
+    --item_width  //int
+    --thItems[]   // 列名称
+      --blockItem{}   [.text, .multi_line：是否多行显示]
+    --tableItems[] // 一个表头，可以在页面里面找到多个匹配的表格。
+      --tableItem{}
+          --rowList[]
+            --row[]
+              --td{}
+                --type
+                --value
 
 
 */
 
-
-function testInitTableBlockList(){
-
-    var tableBlockList = []
-
-    for (var i=0; i<2; i++ ){
-
-        var tableBlock = {}
-        tableItems = new Array()
-        for (var t =0; t<2; t++){
-
-            var tableItem = {}
-            var rowList = new Array()
-            for (var j=0; j<3; j++ ){
-                var row = new Array()
-                var td1 = {'type': 0, 'value': '2342'}
-                var td2 = {'type': 0, 'value': 'name '+j}
-                var td3 = {'type': 1, 'value': "Ask a home buyer to describe their dream house, and they probably won't begin with the height of the basement ceiling or the proximity to an east-west railroad. "}
-                var td4 = {'type': 0, 'value': '23.89'}
-                row.push(td1)
-                row.push(td2)
-                row.push(td3)
-                row.push(td4)
-                rowList.push(row)
-            }
-            tableItem['rowList'] = rowList
-
-            tableItems.push(tableItem)
-        }
-
-
-        tableBlock['thItems'] = ['Id', 'Name', 'Info', 'price']
-        tableBlock['tableItems'] = tableItems
-        tableBlock['id']= uuid(8, 16)
-        tableBlock['item_width'] = 100 / tableBlock['thItems'].length
-        tableBlockList.push(tableBlock)
-    }
-
-
-    vue.tableBlockList = tableBlockList
-
-}
 
 
 function get_data(url){
@@ -192,6 +148,8 @@ function add_block_to_current_table(blockItem){
     }
     var thItems = vue.currentTableBlock['thItems']
     blockItem['multi_line'] = false
+    blockItem['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
+    blockItem['table_id']= vue.currentTableBlock['id']
     thItems.push(blockItem)
     console.log(JSON.stringify(blockItem))
     vue.currentTableBlock['thItems'] =  thItems
@@ -211,9 +169,17 @@ function delete_table_block(table_block_id){
     vue.tableBlockList = vue.tableBlockList.filter(function(item) {
         return item['id'] != table_block_id
     });
-    //TODO: 删除相关UI 元素
-}
 
+    for(i =0 ; i<vue.blockItemList.length; i++){
+        var blockItem = vue.blockItemList[i]
+        if(blockItem['table_id'] == table_block_id){
+            blockItem['selected'] = 0
+            blockItem['blockType'] = 0 //1 表头; 2 表格中的值
+            blockItem['table_id']= ''
+        }
+    }
+    redraw_canvas()
+}
 
 /**
 
@@ -228,18 +194,26 @@ function create_table_template(){
     }
     var thItems = vue.currentTableBlock['thItems']
 
+
     if(thItems.length<2){
         show_message("表格列数最少为2个")
         return ;
     }
-
-
-
     thItems.sort(sort_block_by_x);
-//    for(var i=0; i<thItems.length; i++){
-//        console.log('sort %d ==  %s   multi_line:  %s',i,  thItems[i]['text'], thItems[i]['multi_line'])
-//    }
 
+    var tableItems = new Array()
+    //TODO:   一个页面里面会有多个该表头开始的表格, 使用 thItems 再找相同的表头
+    var tableItem = find_table_items_by_th_items (thItems)
+
+    tableItems.push(tableItem)
+    vue.currentTableBlock['tableItems'] = tableItems
+    redraw_canvas()
+
+}
+
+function  find_table_items_by_th_items (thItems){
+
+    var tableItem = {}
     var row_poz_list = find_split_row_poz_list(thItems[0])
     var column_poz_list = find_split_column_poz_list(thItems)
 
@@ -251,18 +225,9 @@ function create_table_template(){
 
     var total_same_x_block_item_list = new Array()
     for (var j=0; j<thItems.length ; j++ ){
-
         var same_x_block_item_list = find_same_x_block_item_list(thItems[j])
-
-//        console.log('****   ', same_x_block_item_list)
         total_same_x_block_item_list.push(same_x_block_item_list)
     }
-
-    var row_td_text_list = new Array()
-
-
-    var tableItems = new Array()
-    var tableItem = {}   //TODO:   一个页面里面会有多个该表头开始的表格
     var rowList = new Array();
     for(var i=0; i< row_poz_list.length ; i++ ){
 //        console.log('i=%d, [start=%d,   end=%d]', i, row_poz_list[i]['start'], row_poz_list[i]['end'])
@@ -284,12 +249,10 @@ function create_table_template(){
 
     }//end for
 
-    console.log(row_td_text_list)
     tableItem['rowList'] = rowList
-    tableItems.push(tableItem)
-    vue.currentTableBlock['tableItems'] = tableItems
-
+    return tableItem;
 }
+
 
 function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list, thItems ){
 
@@ -307,17 +270,13 @@ function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list
 
     }
 
-    console.log('[top=%d, bottom=%d] [left=%d,right=%d]  multi_line=%s ' ,
-        row_poz['start'], row_poz['end'], left, right, thItems[j]['multi_line'])
+//    console.log('[top=%d, bottom=%d] [left=%d,right=%d]  multi_line=%s ' ,
+//        row_poz['start'], row_poz['end'], left, right, thItems[j]['multi_line'])
 
 
     var temp_text = ''
     for (var i=0; i<same_x_block_item_list.length; i++){
         var tempBlock = same_x_block_item_list[i]
-
-//        console.log('i=%d -----[top=%d, bottom=%d] [left=%d,right=%d] ' ,i,
-//          tempBlock['top'], tempBlock['bottom'], tempBlock['left'],tempBlock['right'])
-
 
         if(tempBlock['left'] >= left &&
            tempBlock['right'] < right &&
@@ -325,19 +284,20 @@ function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list
            tempBlock['y'] < row_poz['end'] ){
 
                 temp_text += tempBlock['text']
+                tempBlock['selected']= 1
+                tempBlock['blockType']= 2 // 0 未选中 1 表头; 2 表格中的值
+                tempBlock['table_id']= vue.currentTableBlock['id']
            }
 
 
     }
     var type = 0 ;
-
     if(thItems[j]['multi_line']){
         type = 1
     }
     if (temp_text == ''){
         return null;
     }
-
     return {'type': type, 'value': temp_text}
 }
 

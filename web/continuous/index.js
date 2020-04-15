@@ -65,7 +65,7 @@ function parse_data(data){
      }
     // 绘制元素
      for(i =0 ; i<blockItemList.length; i++){
-        draw_block_inside(ctx, blockItemList[i], 0)
+        draw_block_inside(ctx, blockItemList[i])
      }
 
 
@@ -166,7 +166,7 @@ function create_block(block){
         newPoly:polyArray,
 //        polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
-        blockType:0, // 1 valueBlock;  2 keyBlock
+        blockType:0, //0 默认;  1 表头; 2 表格中的值
         text:block['Text']
         };
 
@@ -222,9 +222,9 @@ function draw_block_inside(ctx, blockItem){
     ctx.clearRect(blockItem['left']-3,blockItem['top']-3,blockItem['width']+6,blockItem['height']+6);
     if(blockItem['selected'] == 1){ // 已经选择
 //    blockType
-        if(blockItem['blockType'] ==1){  // 值类型
+        if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
             ctx.strokeStyle="red";
-        }else if(blockItem['blockType'] ==2){ // 定位类型元素
+        }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
             ctx.strokeStyle="green";
         }
     }else {
@@ -241,6 +241,18 @@ function draw_block_inside(ctx, blockItem){
 
 }
 
+function redraw_canvas(){
+     var c=document.getElementById("myCanvas");
+     var ctx=c.getContext("2d");
+     ctx.clearRect(0,0,c.width,c.height);
+
+        for(i =0 ; i<vue.blockItemList.length; i++){
+            if(vue.blockItemList[i]['blockType'] !=0 ){
+                console.log('-------[%s]------  %d', vue.blockItemList[i]['text'], vue.blockItemList[i]['blockType'])
+            }
+            draw_block_inside(ctx,vue.blockItemList[i] )
+        }
+}
 
 /**
 找到最宽的元素， 用它来进行页面的旋转
