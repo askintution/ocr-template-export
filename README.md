@@ -9,10 +9,10 @@
 
 
 #架构图 
-![image](./images/000.png)
+![image](./images/000.jpg)
 
 # 识别的图像Demo
-![image](./images/002.png)
+![image](./images/002.jpg)
 
 
 # UI截图
@@ -21,13 +21,13 @@
 模板的页数是固定的， 并且每个页面上的内容也是比较固定的，使用固定布局模板，适合单页或者多页固定格式的内容， 
 例如发票，营业执照 身份证等固定内容的数据。
 
-![image](./images/003.png)
+![image](./images/003.jpg)
 
 
 ### 浮动布局模板
 解决了连续分页问题， 一些表格内容长度不固定，而且会出现跨页的情况， 可以使用浮动布局模板进行解决。
  
-![image](./images/001.png)
+![image](./images/001.jpg)
 
 
 ### DIY
