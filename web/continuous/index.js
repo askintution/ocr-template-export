@@ -53,20 +53,12 @@ function parse_data(data){
     console.log('Canvas size=[%f , %f]  document height %f ',
     page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
-    /** 显示页面 **/
-    var c=document.getElementById("myCanvas");
-    var ctx=c.getContext("2d");
-    ctx.clearRect(0,0,c.width,c.height);
-
-
      //对元素进行缩放
      for(i =0 ; i<blockItemList.length; i++){
             zoom_layout_block(blockItemList[i], document_zoom_out_height)
      }
     // 绘制元素
-     for(i =0 ; i<blockItemList.length; i++){
-        draw_block_inside(ctx, blockItemList[i])
-     }
+    redraw_canvas()
 
 
 }
@@ -247,9 +239,6 @@ function redraw_canvas(){
      ctx.clearRect(0,0,c.width,c.height);
 
         for(i =0 ; i<vue.blockItemList.length; i++){
-            if(vue.blockItemList[i]['blockType'] !=0 ){
-                console.log('-------[%s]------  %d', vue.blockItemList[i]['text'], vue.blockItemList[i]['blockType'])
-            }
             draw_block_inside(ctx,vue.blockItemList[i] )
         }
 }

@@ -21,7 +21,7 @@ function get_template_list(){
               error:function(data){
                   console.log('error')
                   console.log(data);
-                  show_message("操作失败 "+ JSON.stringify(data))
+                  show_message("获取模板 "+ JSON.stringify(data))
               }
         })
 }

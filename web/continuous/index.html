@@ -117,7 +117,7 @@
 
                 </div>
 
-                <table class="table-bordered" style="font-size:14px;margin-top:30px"  v-for="tableItem of tableBlock.tableItems" >
+                <table class="table-bordered" style="font-size:14px;margin-top:30px"  v-for="rowList of tableBlock.tableItems" >
                     <tr >
                         <th v-for="thItem of tableBlock.thItems" style="padding:4px" width="25%" >
                             <span v-text="thItem.text" style="padding:4px"></span>
@@ -125,7 +125,7 @@
                     </tr>
 
 
-                    <tr v-for="row of tableItem.rowList" >
+                    <tr v-for="row of rowList" >
                         <td v-for="tdItem of row" style="padding:2px" width="25%" >
                             <input  v-model="tdItem.value" style="width:100%"  v-if="tdItem.type  == 0" />
 

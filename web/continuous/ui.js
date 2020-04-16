@@ -43,12 +43,11 @@ Vue  对象的结构
     --thItems[]   // 列名称
       --blockItem{}   [.text, .multi_line：是否多行显示]
     --tableItems[] // 一个表头，可以在页面里面找到多个匹配的表格。
-      --tableItem{}
-          --rowList[]
-            --row[]
-              --td{}
-                --type
-                --value
+      --rowList[]
+        --row[]
+          --td{}
+            --type
+            --value
 
 
 */
@@ -213,7 +212,6 @@ function create_table_template(){
 
 function  find_table_items_by_th_items (thItems){
 
-    var tableItem = {}
     var row_poz_list = find_split_row_poz_list(thItems[0])
     var column_poz_list = find_split_column_poz_list(thItems)
 
@@ -249,8 +247,7 @@ function  find_table_items_by_th_items (thItems){
 
     }//end for
 
-    tableItem['rowList'] = rowList
-    return tableItem;
+    return rowList;
 }
 
 
@@ -270,10 +267,6 @@ function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list
 
     }
 
-//    console.log('[top=%d, bottom=%d] [left=%d,right=%d]  multi_line=%s ' ,
-//        row_poz['start'], row_poz['end'], left, right, thItems[j]['multi_line'])
-
-
     var temp_text = ''
     for (var i=0; i<same_x_block_item_list.length; i++){
         var tempBlock = same_x_block_item_list[i]
@@ -283,7 +276,7 @@ function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list
            tempBlock['y'] >= row_poz['start'] &&
            tempBlock['y'] < row_poz['end'] ){
 
-                temp_text += tempBlock['text']
+                temp_text += (tempBlock['text']+ ' ')
                 tempBlock['selected']= 1
                 tempBlock['blockType']= 2 // 0 未选中 1 表头; 2 表格中的值
                 tempBlock['table_id']= vue.currentTableBlock['id']
@@ -333,8 +326,6 @@ function find_split_column_poz_list(thItems){
 3: {start: 543, end: 722}
 */
 function find_split_row_poz_list(blockItem){
-    console.log('\n blockItem = [%s]  [x=%d, y=%d, left=%d, right=%d]',
-    blockItem['text'], blockItem['x'], blockItem['y'], blockItem['left'], blockItem['right'])
 
     var row_y_pos_list = new Array()
     for(var i=0; i< vue.blockItemList.length; i++ ){
@@ -342,7 +333,6 @@ function find_split_row_poz_list(blockItem){
         var tempBlockItem = vue.blockItemList[i]
         if(tempBlockItem['y'] > blockItem['y']  &&
          tempBlockItem['left']< blockItem['right']  &&  tempBlockItem['right']> blockItem['left']){
-
 //            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
 //            tempBlockItem['left'], tempBlockItem['right'])
 
