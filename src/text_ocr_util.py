@@ -33,6 +33,12 @@ class TextOcrUtil:
         self._output_dir = output_dir
 
     def parse_file_list(self, pdf_file_path, s3_file_prefix):
+        """
+        调用Textract 进行文本识别
+        :param pdf_file_path:
+        :param s3_file_prefix:
+        :return:
+        """
 
         filenames = []
         for index, filename in enumerate(glob.glob(pdf_file_path)):
@@ -81,6 +87,14 @@ class TextOcrUtil:
         return json_file_list
 
     def upload_json_file_to_cn(self, json_file_list, profile_name, bucket_name, s3_json_file_prefix):
+        """
+        将文件上传到国内s3 中
+        :param json_file_list:
+        :param profile_name:
+        :param bucket_name:
+        :param s3_json_file_prefix:
+        :return:
+        """
 
         boto3.setup_default_session(profile_name=profile_name)
         s3 = boto3.client('s3')
