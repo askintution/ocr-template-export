@@ -29,7 +29,6 @@ __pycache__/
 */dataset/*
 /models/
 */models
-/target/
 /.idea/*
 /logs/*
 /classes/*
@@ -59,6 +58,7 @@ __pycache__/
 */target/*
 */target
 /target/*
+/target/
 */dataset
 /dataset/*
 
@@ -86,6 +86,12 @@ build.sh
 /cdk.out/
 */cdk.out/
 
+*/temp/*
+*/temp
+/temp/*
+/temp/*
+/temp/
+./temp/
 cdk.context.json
 
 *.zip
