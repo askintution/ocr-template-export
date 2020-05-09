@@ -13,7 +13,6 @@ import os
 import re
 
 
-
 def pyMuPDF_fitz(pdfPath, imagePath,imgName):
     """
     pdf文件转换为png，存储到指定路径和指定名称
@@ -67,50 +66,59 @@ def load(jsonfile):
         return data
 
 
-def cut_one_img_and_detect_language(save_img, image, save_path, blocks):
+def cut_one_img(base_dir):
     """
     单张image按照bbox切割为子图
-    :param save_img: cv2读入img文件
-    :param image: 读入img文件
-    :param save_path: 保存路径
-    :param blocks: bbox
-    :param image_names: 保存路径下的文件名
+    :param base_dir: cv2读入img文件
     """
+    print('cut_one_img    base_dir {} '.format(base_dir))
+    img_name = 'image.png'
+    save_img = cv2.imread(os.path.join(base_dir, img_name))
+    save_path = os.path.join(base_dir, 'images')
+    json_file = os.path.join(base_dir, 'data.json')
+    print('---------------- json_file ', json_file)
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+
+    image = Image.open(os.path.join(base_dir, img_name))
+
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
     width, height = image.size
 
     pool = Pool(processes=10)
     pool_result = []
     # save image bounding box/polygon the detected lines/text
-    for i, block in enumerate(blocks):
+    for i, block in enumerate(data['Blocks']):
         # Draw box around entire LINE
-        if block['BlockType'] == "LINE":
-            box=block['Geometry']['BoundingBox']
+        if not block['BlockType'] == "WORD":
+            box = block['Geometry']['BoundingBox']
             left = int(width * box['Left'] - 2)
             top = height * box['Top']
-            c_img = save_img[int(top): int(top + (height * box['Height'])), left: int(left + (width * box['Width']))]
-            name = str(i).zfill(3)+"_"+block['Id']+".png"
+            c_img = save_img[int(top): int(top + (height * box['Height'])),
+                    left: int(left + (width * box['Width'])) + 5]
+            name = str(i).zfill(3)+"_"+block['BlockType']+"_"+block['Id']+".png"
 
             f = os.path.join(save_path, name)
             Path(save_path).mkdir(parents=True, exist_ok=True)
-
+            block['cut_image_name'] = name
             cv2.imwrite(f, c_img)
-            print('Image Shape: {}'.format(c_img.shape ))
+            print('Image Shape: {}'.format(c_img.shape))
 
     pool.close()
     # wait for processes are completed.
     for r in pool_result:
         r.get(timeout=400)
 
+    new_json_file = os.path.join(base_dir, 'data_new.json')
+    with open(new_json_file, "w") as f:
+        json.dump(data, f)
+        print(' [{}] 文件保存成功 '.format(new_json_file))
 
 
-data = load('../target/test001.json')
+base_dir = '../target/test001_png_adb43ecd'
 
-img_path = '../temp/'
-img_name = 'test001.png'
-save_img = cv2.imread(os.path.join(img_path, img_name))
-save_path = '../target/images/'
-image = Image.open(os.path.join(img_path, img_name))
-
-cut_one_img_and_detect_language(save_img, image, save_path, data['Blocks'])
+cut_one_img(base_dir)
 
 #convert_pdf("../temp/test001.pdf", '../temp/')

@@ -1,3 +1,6 @@
+from multiprocessing import Pool
+from pathlib import Path
+from PIL import Image
 import argparse
 import shutil
 import errno
@@ -5,6 +8,7 @@ import time
 import uuid
 import fitz
 import json
+import boto3
 import glob
 import cv2
 import os
@@ -18,6 +22,8 @@ class PreProcessingImage(object):
     def __init__(self):
         self.file_map = {}
         self.output_dir = ''
+        self.global_profile_name = ''
+        self.global_s3_name = ''
 
     def parse_arguments(self):
         """
@@ -32,7 +38,7 @@ class PreProcessingImage(object):
             "--output_dir",
             type=str,
             nargs="?",
-            help="输入文件的本地路径",
+            help="输出文件的本地路径",
             required=True
         )
         parser.add_argument(
@@ -174,28 +180,33 @@ class PreProcessingImage(object):
 
         index = 0
         json_file_list = []
+        boto3.setup_default_session(profile_name=self.global_profile_name)
+        textract_client = boto3.client('textract')
+        s3_client = boto3.client('s3')
 
         for file_item in self.file_map.items():
             index += 1
             print('No: {}  Path: {}  file: {} '.format(index,  file_item[0], file_item[1]))
             file_name = file_item[1]
+            file_output_path = file_item[0]
 
-            new_file_name = file_name.split('/')[-1].split('.')[0]
+            new_file_name = file_output_path.split('/')[-1]
             postfix = file_name.split('/')[-1].split('.')[1]
 
 
             upload_data = open(file_name, mode='rb')
 
             key = s3_file_prefix + '/' + new_file_name+'.'+postfix
-            file_obj = self._s3.put_object(Bucket=self._bucket_name,
+            print('global_bucket_name {}  key {} '.format(self.global_s3_name, key, ))
+            file_obj = s3_client.put_object(Bucket=self.global_s3_name,
                                            Key=key,
                                            Body=upload_data, Tagging='ocr')
             print('Upload pdf {}  返回结果: {}'.format(new_file_name, file_obj))
 
-            response = self._textract.start_document_analysis(
+            response = textract_client.start_document_analysis(
                 DocumentLocation={
                     'S3Object': {
-                        'Bucket': self._bucket_name,
+                        'Bucket': self.global_s3_name,
                         'Name': key
                     }
                 },
@@ -203,20 +214,72 @@ class PreProcessingImage(object):
             )
             status = 'IN_PROGRESS'
 
+            json_file_name = 'data.json'
             while status == 'IN_PROGRESS':
-                time.sleep(5)
-                # print("file_name {} ------------------status {}  ".format(file_name, status))
-                status = self._textract.get_document_analysis(JobId=response['JobId'])['JobStatus']
+                time.sleep(8)
+                #print("file_name {} ------------------status {}  ".format(file_name, status))
+                status = textract_client.get_document_analysis(JobId=response['JobId'])['JobStatus']
 
                 if status != 'IN_PROGRESS':
-                    json_file = os.path.join(self.output_dir, new_file_name+'.json')
+                    json_file = os.path.join(file_output_path, json_file_name)
                     with open(json_file, 'w') as f:
-                        f.write(json.dumps(self._textract.get_document_analysis(JobId=response['JobId'])))
+                        f.write(json.dumps(textract_client.get_document_analysis(JobId=response['JobId'])))
 
                     print("Save json to local [{}] ".format(json_file))
-                    json_file_list.append((json_file, new_file_name+'.json'))
+                    json_file_list.append((json_file, json_file_name))
 
         return json_file_list
+
+    def cut_one_img(self, base_dir):
+        """
+        单张image按照bbox切割为子图
+        :param base_dir: cv2读入img文件
+        """
+        print('cut_one_img    base_dir {} '.format(base_dir))
+        img_name = 'image.png'
+        save_img = cv2.imread(os.path.join(base_dir, img_name))
+        save_path = os.path.join(base_dir, 'images')
+        json_file = os.path.join(base_dir, 'data.json')
+        print('---------------- json_file ', json_file)
+        with open(json_file, 'r') as f:
+            data = json.load(f)
+
+        image = Image.open(os.path.join(base_dir, img_name))
+
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+
+        width, height = image.size
+
+        pool = Pool(processes=10)
+        pool_result = []
+        # save image bounding box/polygon the detected lines/text
+        for i, block in enumerate(data['Blocks']):
+            # Draw box around entire LINE
+            if block['BlockType'] == "LINE" or block['BlockType'] == "CELL":
+                box=block['Geometry']['BoundingBox']
+                left = int(width * box['Left'] - 2)
+                top = height * box['Top']
+                c_img = save_img[int(top): int(top + (height * box['Height'])),
+                        left: int(left + (width * box['Width'])) + 5]
+                name = str(i).zfill(3)+"_"+block['Id']+".png"
+
+                f = os.path.join(save_path, name)
+                Path(save_path).mkdir(parents=True, exist_ok=True)
+                block['cut_image_name'] = name
+                cv2.imwrite(f, c_img)
+                print('Image Shape: {}'.format(c_img.shape))
+
+        pool.close()
+        # wait for processes are completed.
+        for r in pool_result:
+            r.get(timeout=400)
+
+        new_json_file = os.path.join(base_dir, 'data_new.json')
+        with open(new_json_file, "w") as f:
+            json.dump(data, f)
+            print(' [{}] 文件保存成功 '.format(new_json_file))
+
 
 
 
@@ -235,6 +298,8 @@ class PreProcessingImage(object):
             if e.errno != errno.EEXIST:
                 raise
         self.output_dir = args.output_dir
+        self.global_profile_name = args.global_profile_name
+        self.global_s3_name = args.global_s3_name
 
         if not os.path.exists(args.input_dir):
             print("输入路径不能为空  input_dir[{}] ".format(args.input_dir))
@@ -242,15 +307,18 @@ class PreProcessingImage(object):
         # step 1 . 生成文件夹
         self.read_local_image_file(args.input_dir, args.output_dir)
 
-        # step 2 .  pdf 生成image
+        # step 2 .  textract
 
-        self.parse_file_list( args.prefix_s3)
+        self.parse_file_list(args.prefix_s3)
 
-        # step 3 .
+        # step 3 .  切分图片按
 
-        # step 4 .
+        for file_item in self.file_map.items():
+            file_output_path = file_item[0]
+            self.cut_one_img(file_output_path)
 
-        # step 5 .
+        # step 4 . copy 到国内s3 上
+
 
         # Create the directory if it does not exist.
 
