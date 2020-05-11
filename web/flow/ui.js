@@ -10,8 +10,8 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 currentTableBlock:{},
-                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/2020_05_05_pdf.json",
-//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/test2.json",
+//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/2020_05_05_pdf.json",
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/test2.json",
 
 
                 data:{}
