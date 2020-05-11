@@ -34,9 +34,8 @@ function parse_data(data){
         _blockItemList = result['blockItemList']
 
         page_margin = result['page_margin']
-        margin_document_top = page_margin['bottom'] - page_margin['top']
-        document_page_height += margin_document_top
-
+        margin_document_top += page_margin['bottom'] - page_margin['top']
+        document_page_height += page_margin['bottom'] - page_margin['top']
 
         console.log('Page : %d \t Item count: %d \t margin_document_top %f \t document_page_height %f',
          (count + 1),  _blockItemList.length, margin_document_top, document_page_height)

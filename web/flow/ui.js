@@ -1,4 +1,6 @@
 var vue ;
+MAX_ROW_MARGIN = 150 // 自动发现表格， 行之前的宽度
+MAX_COL_MARGIN = 100 //对齐表头的元素， 最大偏差
 $(function(){
 
     vue = new Vue({
@@ -8,7 +10,10 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 currentTableBlock:{},
-                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/test2.json",
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/2020_05_05_pdf.json",
+//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/test2.json",
+
+
                 data:{}
 
              },methods:{
@@ -323,7 +328,19 @@ function  find_table_items_by_th_items (thItems){
         }//end for
         if (!find_all_td_in_row_flag){
             break;
+        }else {
+            for(var z=0 ; z< row.length; z++){
+                var blockList = row[z]['blockList']
+
+                for(var t=0; t<blockList.length; t++){
+                    display_block_item(blockList[t])
+                }
+
+            }
         }
+
+
+
         rowList.push(row)
 
     }//end for
@@ -352,7 +369,7 @@ function find_td_item_x_boundary(column_poz_list, j){
 }
 
 
-function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list, thItems ){
+function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list, thItems, is_show ){
 
     var left =0;
     var right = 0;
@@ -369,6 +386,7 @@ function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list
     }
 
     var temp_text = ''
+    var targetBlockList = new Array();
     for (var i=0; i<same_x_block_item_list.length; i++){
         var tempBlock = same_x_block_item_list[i]
 
@@ -378,9 +396,11 @@ function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list
            tempBlock['y'] < row_poz['end'] ){
 
                 temp_text += (tempBlock['text']+ ' ')
-                tempBlock['selected']= 1
-                tempBlock['blockType']= 2 // 0 未选中 1 表头; 2 表格中的值
-                tempBlock['table_id']= vue.currentTableBlock['id']
+                targetBlockList.push(tempBlock)
+                if(!thItems[j]['multi_line']){ // 如果不是多行，结束循环
+                    break
+                }
+
            }
 
 
@@ -392,9 +412,15 @@ function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list
     if (temp_text == ''){
         return null;
     }
-    return {'type': type, 'value': temp_text}
+    return {'type': type, 'value': temp_text, 'blockList': targetBlockList}
 }
 
+
+function display_block_item(tempBlock){
+    tempBlock['selected']= 1
+    tempBlock['blockType']= 2 // 0 未选中 1 表头; 2 表格中的值
+    tempBlock['table_id']= vue.currentTableBlock['id']
+}
 
 
 /**
@@ -427,16 +453,26 @@ function find_split_column_poz_list(thItems){
 3: {start: 543, end: 722}
 */
 function find_split_row_poz_list(blockItem){
+//    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', blockItem['text'], blockItem['x'], blockItem['y'],
+//    blockItem['blockItem'], blockItem['right'])
 
+    var last_item_y = blockItem['y']
     var row_y_pos_list = new Array()
     for(var i=0; i< vue.blockItemList.length; i++ ){
 
         var tempBlockItem = vue.blockItemList[i]
         if(tempBlockItem['y'] > blockItem['y']  &&
-         tempBlockItem['left']< blockItem['right']  &&  tempBlockItem['right']> blockItem['left']){
+         tempBlockItem['left']< blockItem['right']  &&
+         tempBlockItem['left']> blockItem['left'] - MAX_COL_MARGIN  &&
+         tempBlockItem['right']> blockItem['left']){
 //            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
 //            tempBlockItem['left'], tempBlockItem['right'])
 
+            //下一个行和上一个行差距太大， 就结束查找
+            if(tempBlockItem['y'] - last_item_y > MAX_ROW_MARGIN ){
+                break;
+            }
+            last_item_y = tempBlockItem['y']
             row_y_pos_list.push(tempBlockItem['top'])
         }
 
@@ -449,15 +485,17 @@ function find_split_row_poz_list(blockItem){
         console.log('未找到表格元素')
     }else if(row_y_pos_list.length == 1){
         //150 经验值， 一个表格最大的高度
-        row_poz_list.push({'start':row_y_pos_list[0], 'end':row_y_pos_list[0] + 150 })
+        row_poz_list.push({'start':row_y_pos_list[0], 'end':row_y_pos_list[0] + MAX_ROW_MARGIN })
     }else {
 
         for(var i=1; i<row_y_pos_list.length; i++){
             row_poz_list.push({'start':row_y_pos_list[i-1], 'end':row_y_pos_list[i] })
         }
+        var last_y = row_y_pos_list[row_y_pos_list.length -1]
+        row_poz_list.push({'start':last_y, 'end':last_y + MAX_ROW_MARGIN })
     }
 
-//    console.log(row_poz_list)
+//    console.log('row_poz_list', row_poz_list)
     return  row_poz_list
 }
 

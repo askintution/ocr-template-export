@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     s3_json_file_prefix = 'ocr/'
     #需要解析的文件路径和 后缀名称
-    pdf_file_path = '../dataset/pdf/*.pdf'
+    pdf_file_path = '../dataset/pdf/2020_05_05_pdf.pdf'
 
     #aws profile name
     profile_name = 'g'
