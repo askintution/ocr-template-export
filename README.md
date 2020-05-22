@@ -96,6 +96,10 @@ python ./source/text_ocr_util.py \
 
 ```
 
+* 建议用多个相同格式不同内容文件进行测试， 
+第一文件用于生成模板， 剩余的文件进行测试
+
+
 ## TODO  代码封装到Lambda中， 用网页进行文件调用
 
 
@@ -108,6 +112,12 @@ python ./source/text_ocr_util.py \
 source/web/fix/index.html        固定布局的模板设置
 source/web/flow/index.html       连续布局的模板设置
 ```
+
+## 生成固定布局的模板
+
+在浏览器中打开[./source/web/fix/index.html](./source/web/fix/index.html)
+在界面中填入一个解析后的json地址
+选择定位的元素， 生成模板， 然后换一个相同格式的pdf的json 调用下面的测试代码进行匹配
 
 
 
