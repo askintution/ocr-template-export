@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<canvas width="1024" height="600"></canvas>
+
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="jcanvas.min.js"></script>
+<script>
+
+line_height = 30
+line_width = 600
+line_top = 100
+line_left = 230
+col_num = 4
+
+$('canvas').drawLine({
+layer: true,
+  strokeStyle: '#6c1',
+  strokeWidth: 2,
+  x1: line_left, y1: line_top,
+  x2: line_left + line_width, y2: line_top
+});
+
+
+$('canvas').drawLine({
+layer: true,
+  strokeStyle: '#6c1',
+  strokeWidth: 2,
+  x1: line_left, y1: line_top + line_height,
+  x2: line_left + line_width, y2: line_top + line_height,
+});
+
+
+col_width = line_width / col_num
+col_item_y_poz_map = {}
+for(var i=0 ; i< col_num + 1; i++){
+
+    draggable = true
+
+    if(i ==0 || i == col_num){
+        draggable = false
+    }
+
+    x = col_width * i + line_left
+    col_item_y_poz_map[i] = x
+
+     $('canvas').drawRect({
+      layer: true,
+      id: i,
+      draggable: draggable,
+      fillStyle: '#6c1',
+      x: x, y: line_top + line_height/2,
+      width: 2, height: line_height,
+      restrictDragToAxis: 'x',
+      dragstart: function() {
+        // code to run when dragging starts
+      },
+      drag: function(layer) {
+      },
+      dragstop: function(layer) {
+       console.log(layer['x'] ,layer['id']  )
+       col_item_y_poz_map[layer['id']] = layer['x']
+
+       console.log( col_item_y_poz_map )
+      }
+    });
+
+
+}
+
+
+
+
+</script>
+</html>

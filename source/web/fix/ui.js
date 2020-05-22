@@ -12,7 +12,7 @@ $(function(){
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/ocr-demo.json",
 //
 //                https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json
-                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/02_01.json",
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/image01.json",
                 data:{},
                 pageNo:0,
 

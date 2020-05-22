@@ -1,10 +1,10 @@
 var vue ;
-var POST_URL = "https://94qmp9fmc3.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
+var POST_URL = "https://7imr48wed1.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
 $(function(){
     vue = new Vue({
             el: '#main',
             data:{
-                data_url: "https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/data/page7.json",
+                data_url: "https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/image02.json",
                 total_count:0,
                 log_text_area: '',
             },methods:{

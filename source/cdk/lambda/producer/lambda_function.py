@@ -78,14 +78,14 @@ if __name__ == "__main__":
     # {"cmd":"get_field_list","template_id":"fe1efd02-64de-4371-8229-89e67cbe86ba"}
     # """
 
-    # event_data_str = """
-    # {"cmd":"get_template_list", "template_type":"default"}
-    # """
-
-
     event_data_str = """
-    {"cmd":"match_template","template_type":"default",  "data_url":"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/02_03.json"}
+    {"cmd":"get_template_list", "template_type":"default"}
     """
+
+
+    # event_data_str = """
+    # {"cmd":"match_template","template_type":"default",  "data_url":"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/02_03.json"}
+    # """
 
     event = json.loads(event_data_str)
     lambda_handler(event, None)

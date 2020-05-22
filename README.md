@@ -51,7 +51,7 @@ cdk deploy
 # PDF/Image 生成json   
 
 调用AWS Textract 服务， 将PDF image 里面的文本进行识别，以json格式返回结果。 
- [请参考代码  ./src/text_ocr_util.py ](./src/text_ocr_util.py)
+ [请参考代码  ./src/text_ocr_util.py ](source/back.py)
  
 如果第一次使用CDK ，请先阅读以下两个文档. 
 
@@ -74,53 +74,7 @@ cdk 会输出Api gateway 的访问地址， 替换掉./web/fix/index.js里面的
 ```
 
 
-# 调用baiduOCR 自动生成训练样本
-
-
-[百度OCR api 接口](https://ai.baidu.com/ai-doc/OCR/)
-
-
-申请 开发ID 和Key
-```python
-from aip import AipOcr
-
-""" 你的 APPID AK SK """
-APP_ID = '你的 App ID'
-API_KEY = '你的 Api Key'
-SECRET_KEY = '你的 Secret Key'
-
-client = AipOcr(APP_ID, API_KEY, SECRET_KEY)
-```
-
-
-### 修改run.sh 脚本
-
 ```shell script
 
-export PYTHONPATH=../
-
-python ../baidu_ocr/baidu_ocr.py \
---input_dir='../temp/' \
---output_dir='../target/' \
---app_id='app_id' \
---api_key='api_key' \
---secret_key='secret_key'
-```
-
-
-### 生成数据示例样本
-```
-
-.
-├── test001_pdf_a98aac73    第一个PDF
-│   ├── data.json           ocr 返回结果
-│   ├── image.png           样本图片
-│   ├── images              裁剪后的小图
-│   └── labels.txt          标记文本数据
-└── test002_pdf_6df2f695
-    ├── data.json
-    ├── image.png
-    ├── images
-    └── labels.txt
-
+sh shell/text_ocr_util.sh
 ```
