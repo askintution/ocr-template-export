@@ -17,43 +17,50 @@
 
 # UI截图
 
-### 固定布局模板
+## 固定布局模板
 模板的页数是固定的， 并且每个页面上的内容也是比较固定的，使用固定布局模板，适合单页或者多页固定格式的内容， 
 例如发票，营业执照 身份证等固定内容的数据。
 
 ![image](./images/003.jpg)
 
 
-### 浮动布局模板
+## 浮动布局模板
 解决了连续分页问题， 一些表格内容长度不固定，而且会出现跨页的情况， 可以使用浮动布局模板进行解决。
  
 ![image](./images/001.jpg)
 
 
-### DIY
+## DIY
 根据自己业务的需求， 进行定制开发， 可以适用于更多的场景。 
-
 
 
 
 # CDK 新建基础环境
 
-会自动生成一个Api-gateway + lambda + Dynamodb 的服务框架
+
+## 执行CDK
 
 操作步骤如下： 
-
 ```
 cd cdk
 cdk deploy
 ```
+会自动生成一个Api-gateway + lambda + Dynamodb 服务的框架
 
 
-# PDF/Image 生成json   
+## CDK 输出Api Gateway url地址
 
-调用AWS Textract 服务， 将PDF image 里面的文本进行识别，以json格式返回结果。 
- [请参考代码  ./src/text_ocr_util.py ](source/back.py)
+cdk 会在控制台输出如下url
+https://xxxx.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr
+
+将这个地址替换以下三个js中的POST_URL地址， 用于给Lambda 发送消息
+[./source/web/client/a.js](./source/web/client/a.js)
+[./source/web/flow/index.js](./source/web/flow/index.js)
+[./source/web/fix/index.js](./source/web/fix/index.js)
+
  
-如果第一次使用CDK ，请先阅读以下两个文档. 
+ 
+##  CDK参考文档 
 
 [CDK 官方文档 ](https://docs.aws.amazon.com/cdk/latest/guide/home.html)
   
@@ -61,20 +68,52 @@ cdk deploy
 
 
 
-# 部署web 页面
+# 解析PDF JPG文件
 
-cdk 会输出Api gateway 的访问地址， 替换掉./web/fix/index.js里面的 api 地址。 
+
+## 调用脚本将pdf jpg生成json文件
+
+调用AWS Textract 服务， 将PDF image里面的文本进行识别，以json格式返回结果，
+保存到国内S3中，供后面应用调用。 
+
+[请参考代码 source/text_ocr_util.py ](source/text_ocr_util.py)
+ 
+```shell 
+
+# 执行脚本
+
+sh shell/text_ocr_util.sh
+
+# 脚本内容说明， 使用前替换成自己的AWS账号的名称
+python ./source/text_ocr_util.py \
+--input_dir='./temp/' \                                 # pdf 或者jpg 文件路径
+--output_dir='./target/' \                              # 生成json文件本地保存路径
+--prefix_s3='ocr_ouput' \                               # S3 bucket 保存json文件的前缀
+--global_s3_name='your_global_bucket_name' \            # Global bucket name 用于Textract 调用
+--global_profile_name='your_global_profile_name' \      # Global profile name 用于Textract 调用
+--cn_s3_name='your_cn_s3_name' \                        # 国内bucket name， 用于保存解析后的json文件
+--cn_profile_name='your_cn_profile_name'                # 国内profile name 用于S3 调用 
+
+```
+
+## TODO  代码封装到Lambda中， 用网页进行文件调用
+
+
+
+# 部署web 页面
 
 ./web 目录下的文件可以部署到服务器上， 或者在本地打开， 进行操作。 
 
 ```
-./web/fix/index.html        固定布局的模板设置
-./web/flow/index.html       连续布局的模板设置
-./web/client/index.html     客户端进行匹配的示例
+source/web/fix/index.html        固定布局的模板设置
+source/web/flow/index.html       连续布局的模板设置
 ```
 
 
-```shell script
 
-sh shell/text_ocr_util.sh
-```
+## 固定模板测试
+
+source/web/client/index.html     客户端进行固定模板匹配的示例
+![image](./images/004.jpg)
+
+
