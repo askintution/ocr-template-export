@@ -20,6 +20,27 @@ line_top = 100
 line_left = 230
 col_num = 4
 
+// Draw text
+$('canvas').drawText({
+  layer: true,
+  name: 'myText',
+  fillStyle: '#36c',
+  strokeWidth: 2,
+  x: 180, y: 150,
+  fontSize: '36pt',
+  fontFamily: 'Verdana, sans-serif',
+  text: 'Hello'
+})
+// Draw circle as wide as the text
+.drawArc({
+  layer: true,
+  strokeStyle: '#000',
+  strokeWidth: 4,
+  x: 180, y: 150,
+  radius: $('canvas').measureText('myText').width / 2
+});
+
+
 $('canvas').drawLine({
 layer: true,
   strokeStyle: '#6c1',

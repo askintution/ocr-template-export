@@ -207,39 +207,73 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
 /**
 绘制block
 */
-function draw_block_inside(ctx, blockItem){
+function draw_block_inside(blockItem){
 
-    ctx.beginPath();
-    ctx.clearRect(blockItem['left']-3,blockItem['top']-3,blockItem['width']+6,blockItem['height']+6);
-    if(blockItem['selected'] == 1){ // 已经选择
-//    blockType
-        if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
-            ctx.strokeStyle="red";
-        }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
-            ctx.strokeStyle="green";
+     var strokeStyle = 'blue'
+     if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
+        strokeStyle="red";
+     }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
+        strokeStyle="green";
+     }
+
+
+    $('#myCanvas').clearCanvas({
+          x: blockItem['x']-1, y: blockItem['y']-1,
+          width: blockItem['width']+2,
+          height: blockItem['height']+2
+    });
+
+    $('#myCanvas').drawRect({
+      layer: true,
+      strokeStyle: strokeStyle,
+      strokeWidth: 1,
+      x: blockItem['x'], y: blockItem['y'],
+      width: blockItem['width'],
+      height: blockItem['height'],
+      cornerRadius: 1,
+      click: function() {
+            click_item(blockItem)
         }
-    }else {
-        ctx.strokeStyle="blue";
-    }
+    });
 
-    var newPoly = blockItem.newPoly
-    ctx.font="10px Arial";
-    ctx.lineWidth="1";
-    ctx.rect(blockItem['left'],blockItem['top'],blockItem['width'],blockItem['height']);
 
-    ctx.fillText(blockItem['text'],blockItem['left'] +3, blockItem['top']+blockItem['height']/2.0 +2);
-    ctx.stroke();
+   $('#myCanvas').drawText({
+     layer: true,
+     fillStyle: '#36c',
+     fontSize: '10pt',
+     text: blockItem['text'],
+     x: blockItem['x'] - $('#myCanvas').measureText('myText').width / 2, y: blockItem['y'],
+     align: 'left',
+   });
 
 }
 
+function click_item(blockItem){
+    var selected = blockItem['selected']
+    console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
+                    blockItem['left'], blockItem['id'], blockItem['text'] )
+
+     console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
+    if(selected == 0){
+        if(add_block_to_current_table(blockItem)){
+            blockItem['selected'] = 1
+            blockItem['blockType'] = 1
+            draw_block_inside(blockItem)
+        }
+
+    }else {
+            blockItem['selected'] = 0
+    }
+}
+
 function redraw_canvas(){
-     var c=document.getElementById("myCanvas");
-     var ctx=c.getContext("2d");
-     ctx.clearRect(0,0,c.width,c.height);
+     $('#myCanvas').clearCanvas()
 
         for(i =0 ; i<vue.blockItemList.length; i++){
-            draw_block_inside(ctx,vue.blockItemList[i] )
+            draw_block_inside(vue.blockItemList[i] )
         }
+
+     create_split_thItems_line()
 }
 
 /**
@@ -307,4 +341,64 @@ function init_page_margin_block(blockItemList){
         console.log("page_margin",  JSON.stringify(page_margin))
         return page_margin;
 
+}
+
+function create_split_thItems_line(){
+
+    line_height = 30
+    line_width = 600
+    line_top = 100
+    line_left = 230
+    col_num = 4
+
+    $('#myCanvas').drawLine({
+    layer: true,
+      strokeStyle: '#6c1',
+      strokeWidth: 2,
+      x1: line_left, y1: line_top,
+      x2: line_left + line_width, y2: line_top
+    });
+
+    $('#myCanvas').drawLine({
+    layer: true,
+      strokeStyle: '#6c1',
+      strokeWidth: 2,
+      x1: line_left, y1: line_top + line_height,
+      x2: line_left + line_width, y2: line_top + line_height,
+    });
+
+    col_width = line_width / col_num
+    col_item_y_poz_map = {}
+    for(var i=0 ; i< col_num + 1; i++){
+
+        draggable = true
+
+        if(i ==0 || i == col_num){
+            draggable = false
+        }
+
+        x = col_width * i + line_left
+        col_item_y_poz_map[i] = x
+
+         $('#myCanvas').drawRect({
+          layer: true,
+          id: i,
+          draggable: draggable,
+          fillStyle: '#6c1',
+          x: x, y: line_top + line_height/2,
+          width: 2, height: line_height,
+          restrictDragToAxis: 'x',
+          dragstart: function() {
+            // code to run when dragging starts
+          },
+          drag: function(layer) {
+          },
+          dragstop: function(layer) {
+           console.log(layer['x'] ,layer['id']  )
+           col_item_y_poz_map[layer['id']] = layer['x']
+
+           console.log( col_item_y_poz_map )
+          }
+        });
+    }
 }
