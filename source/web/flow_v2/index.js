@@ -140,8 +140,6 @@ function create_block(block){
         newPloy['x'] =   newPloy['x']+ 0.5
         newPloy['y'] =   newPloy['y']+ 0.5
         polyArray.push(newPloy)
-
-
     }
 
 
@@ -157,6 +155,7 @@ function create_block(block){
         text:block['Text']
         };
 
+     // 如果是行元素， 保存它的孩子元素 WORD
      if(blockItem['raw_block_type'] == 'LINE' && block['Relationships'].length > 0){
         blockItem['child_list'] = block['Relationships'][0]['Ids']
      }
@@ -183,11 +182,16 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 }
 
 
+/**
+判断一个元素是否显示
+*/
 function is_display_block(blockItem){
 
+    //TODO: current_split_block_list 放入到VUE 变量中
     var current_split_block_list = ['ee7da4fa-04ed-4844-869f-e007972eee8c',
                                     'f30f4c52-cb4e-49c3-ba82-216ef381b6b4']
 
+    //LINE
     if (blockItem['raw_block_type'] == 'LINE'){
         for (var i=0 ; i<current_split_block_list.length; i++  ){
            var current_split_block_id = current_split_block_list[i]
@@ -199,9 +203,7 @@ function is_display_block(blockItem){
         return true
     }
 
-
-
-
+    //WORD
     for (var i=0 ; i<current_split_block_list.length; i++  ){
        var current_split_block_id = current_split_block_list[i]
         //如果是LINE block， 已经切分了， 就不显示
@@ -210,11 +212,6 @@ function is_display_block(blockItem){
             return true
         }
     }
-
-
-
-
-
     return false
 }
 

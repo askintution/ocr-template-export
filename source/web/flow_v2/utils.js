@@ -1,3 +1,6 @@
+/**
+找到一个word 元素的父元素
+*/
 function find_parent_block_id_by_child(child_blockItem){
 
     if(child_blockItem['raw_block_type'] !='WORD'){
@@ -110,8 +113,6 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
         var poly = polyArray[i];
         poly['x'] = parseInt(poly['x']  * page_width)
         poly['y'] = parseInt(poly['y']  * page_height)
-
-
     }
     blockItem['width'] = parseInt(polyArray[1]['x'] - polyArray[0]['x'])
     blockItem['height'] = parseInt(polyArray[3]['y'] - polyArray[0]['y'])
