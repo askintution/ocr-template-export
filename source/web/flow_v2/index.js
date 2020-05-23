@@ -52,25 +52,17 @@ function parse_data(data){
     console.log('Canvas size=[%f , %f]  document height %f ',
     page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
-     //对元素进行缩放
+     //对元素进行缩放  如果是WORD 元素， 找到他们的父元素
      for(i =0 ; i<blockItemList.length; i++){
-            zoom_layout_block(blockItemList[i], document_zoom_out_height)
+            var _blockItem = blockItemList[i]
+            zoom_layout_block(_blockItem, document_zoom_out_height)
+            find_parent_block_id_by_child(_blockItem)
      }
     // 绘制元素
     redraw_canvas()
 
 
 }
-
-
-
-function reset_canvas(width, height){
-    var canvas=document.getElementById("myCanvas");
-    canvas.width=width
-    canvas.height=height
-
-}
-
 /**
 解析单页的数据
 **/
@@ -84,7 +76,8 @@ function parse_data_by_page(page, margin_document_top){
 
     // 将所有'行'的元素取出来
     for (i =0 ; i< data['Blocks'].length ; i++){
-        if(data['Blocks'][i]['Page'] == page  && data['Blocks'][i]['BlockType']=='LINE'){
+        if(data['Blocks'][i]['Page'] == page  &&
+            (data['Blocks'][i]['BlockType']=='LINE' || data['Blocks'][i]['BlockType']=='WORD' )){
             blockList[index] = data['Blocks'][i]
             index++
         }
@@ -98,7 +91,7 @@ function parse_data_by_page(page, margin_document_top){
 
     tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
     var theta = Math.atan(tan)
-    console.log("PageCount=%d,  PageNo=%d,  tan = %f,  theta =   %f   ", vue.pageCount , vue.pageNo, tan, theta)
+    console.log("PageCount=%d,   tan = %f,  theta =   %f   ", vue.pageCount , tan, theta)
 
     //反方向旋转Theta
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]
@@ -108,6 +101,7 @@ function parse_data_by_page(page, margin_document_top){
 
     //计算旋转后坐标
     var blockCount = blockList.length
+//    blockCount = 20
     for(i =0 ; i<blockCount; i++){
        blockItem = create_block(blockList[i])
        block_item_list.push(blockItem)
@@ -154,12 +148,19 @@ function create_block(block){
 //    封装block 元素， 供页面显示
     var blockItem = {
         id:block['Id'],
+        raw_block_type: block['BlockType'],   // LINE or WORD
+        is_split: false,                      // 是否做拆分
         newPoly:polyArray,
 //        polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
         blockType:0, //0 默认;  1 表头; 2 表格中的值
         text:block['Text']
         };
+
+     if(blockItem['raw_block_type'] == 'LINE' && block['Relationships'].length > 0){
+        blockItem['child_list'] = block['Relationships'][0]['Ids']
+     }
+
 
     return blockItem
 }
@@ -181,33 +182,54 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 
 }
 
-/**
-把现有元素等比例放大， 占满空间
-*/
-function zoom_layout_block(blockItem, document_zoom_out_height){
 
-    var polyArray  = blockItem['newPoly']
-    for (var i=0; i<polyArray.length; i++){
-        var poly = polyArray[i];
-        poly['x'] = parseInt(poly['x']  * page_width)
-        poly['y'] = parseInt(poly['y']  * page_height)
+function is_display_block(blockItem){
 
+    var current_split_block_list = ['ee7da4fa-04ed-4844-869f-e007972eee8c',
+                                    'f30f4c52-cb4e-49c3-ba82-216ef381b6b4']
 
+    if (blockItem['raw_block_type'] == 'LINE'){
+        for (var i=0 ; i<current_split_block_list.length; i++  ){
+           var current_split_block_id = current_split_block_list[i]
+            //如果是LINE block， 已经切分了， 就不显示
+            if(blockItem['id'] == current_split_block_id){
+                return false
+            }
+        }
+        return true
     }
-    blockItem['width'] = parseInt(polyArray[1]['x'] - polyArray[0]['x'])
-    blockItem['height'] = parseInt(polyArray[3]['y'] - polyArray[0]['y'])
-    blockItem['left'] = polyArray[0]['x']
-    blockItem['top'] = polyArray[0]['y']
-    blockItem['right'] = polyArray[1]['x']
-    blockItem['bottom'] = polyArray[2]['y']
-    blockItem['x'] = parseInt((polyArray[2]['x'] + polyArray[0]['x']) / 2.0)
-    blockItem['y'] = parseInt((polyArray[2]['y'] + polyArray[0]['y']) / 2.0)
+
+
+
+
+    for (var i=0 ; i<current_split_block_list.length; i++  ){
+       var current_split_block_id = current_split_block_list[i]
+        //如果是LINE block， 已经切分了， 就不显示
+        if ( blockItem['raw_block_type'] == 'WORD' && blockItem['parent_block_id'] == current_split_block_id ){
+    //      console.log( 'parent_block_id: ',  blockItem['parent_block_id'] )
+            return true
+        }
+    }
+
+
+
+
+
+    return false
 }
+
+
+
 
 /**
 绘制block
 */
 function draw_block_inside(blockItem){
+
+    if( is_display_block(blockItem) == false ){
+
+        return
+    }
 
      var strokeStyle = 'blue'
      if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
@@ -222,6 +244,8 @@ function draw_block_inside(blockItem){
           width: blockItem['width']+2,
           height: blockItem['height']+2
     });
+
+
 
     $('#myCanvas').drawRect({
       layer: true,
@@ -266,82 +290,17 @@ function click_item(blockItem){
     }
 }
 
+/**
+重新绘制所有元素
+*/
 function redraw_canvas(){
      $('#myCanvas').clearCanvas()
-
         for(i =0 ; i<vue.blockItemList.length; i++){
             draw_block_inside(vue.blockItemList[i] )
         }
-
      create_split_thItems_line()
 }
 
-/**
-找到最宽的元素， 用它来进行页面的旋转
-*/
-function find_max_width_block(blockList){
-        var max_width_block = null
-        max_width = 0.0
-        for(i =0 ; i< blockList.length; i++){
-
-               width =  blockList[i]['Geometry']['BoundingBox']['Width']
-               if(width> max_width){
-                max_width = width
-                max_width_block = blockList[i]
-               }
-        }
-        return max_width_block;
-}
-
-
-/**
-找到每一页空白的地方， 去除掉， 防止有偏移
-**/
-function init_page_margin_block(blockItemList){
-        var min_top_block = null
-        var page_top = 1
-        var page_bottom = 0.0
-        var page_left = 1
-        var page_right = 0.0
-
-        for(i =0 ; i< blockItemList.length; i++){
-               var top =  blockItemList[i]['newPoly'][0]['y']
-               if(top<page_top){
-                    page_top = top
-               }
-               var left =  blockItemList[i]['newPoly'][0]['x']
-               if(left<page_left){
-                  page_left = left
-               }
-
-               var bottom =  blockItemList[i]['newPoly'][2]['y']
-               if(bottom > page_bottom){
-                   page_bottom = bottom
-               }
-
-               var right =  blockItemList[i]['newPoly'][2]['x']
-               if(right > page_right){
-                   page_right = right
-               }
-
-        }
-
-
-        var page_margin ={'top':0, 'bottom':1, 'left':0, 'right':'1'}
-        page_margin['top'] = page_top;
-        page_margin['bottom'] = page_bottom;
-        page_margin['left'] = page_left;
-        page_margin['right'] = page_right;
-        page_margin['height'] = page_bottom - page_top;
-
-
-        page_margin['height_rate'] = 1.0/(page_bottom - page_top);
-        page_margin['width_rate'] =  1.0/(page_right - page_left)  ;
-
-        console.log("page_margin",  JSON.stringify(page_margin))
-        return page_margin;
-
-}
 
 function create_split_thItems_line(){
 

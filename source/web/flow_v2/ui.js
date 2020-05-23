@@ -11,14 +11,12 @@ $(function(){
                 tableBlockList:[],
                 currentTableBlock:{},
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/test2.json",
-
-
                 data:{}
 
              },methods:{
                 get_json:function(){
                     url = $("#json_url_input").val()
-                    alert(url)
+                    //alert(url)
                     get_data(url)
                 },
                 add_table_block:function(){
@@ -40,7 +38,7 @@ $(function(){
 /**
 
 Vue  对象的结构
---tableBlockList[]
+--tableBlockList[]        //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
     --item_width  //int
