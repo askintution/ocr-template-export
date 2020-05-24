@@ -64,7 +64,7 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-7" class="overflow-auto"  >
+        <div class="col-md-7" class="overflow-auto" id="myCanvasParent" >
             <canvas id="myCanvas" width="960" height="1200"
                   style="border:1px solid #000000;">
         </canvas>
@@ -102,7 +102,11 @@
                             <td><input   type="radio"  v-model="thItem.multi_line" /></td>
                             <td><span    v-text="thItem.text" /></td>
                             <td><input   type="checkbox"  v-model="thItem.multi_line" /></td>
-                            <td><input   type="checkbox"  v-model="thItem.is_split" /></td>
+                            <td>
+                                <input   type="checkbox"  v-model="thItem.is_split"    v-on:click="split_function($event)"
+                                         v-bind:name="thItem.id"
+                                />
+                            </td>
                             <td><a href="#" >删除</a></td>
 
                         </tr>

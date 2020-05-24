@@ -26,6 +26,19 @@ function find_parent_block_id_by_child(child_blockItem){
 }
 
 /**
+根据ID找到元素
+*/
+function find_block_by_id(child_id){
+
+   for(var i=0; i< vue.blockItemList.length; i++  ){
+        if (child_id ==vue.blockItemList[i]['id'] ){
+            return vue.blockItemList[i]
+        }
+   }
+}
+
+
+/**
 重新调整canvas 的大小
 */
 function reset_canvas(width, height){
@@ -122,4 +135,19 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
     blockItem['bottom'] = polyArray[2]['y']
     blockItem['x'] = parseInt((polyArray[2]['x'] + polyArray[0]['x']) / 2.0)
     blockItem['y'] = parseInt((polyArray[2]['y'] + polyArray[0]['y']) / 2.0)
+}
+
+function clear_block_item_in_canvas(blockItem){
+    $('#myCanvas').clearCanvas({
+          x: blockItem['x']-1, y: blockItem['y']-1,
+          width: blockItem['width']+3,
+          height: blockItem['height']+3
+    });
+
+    var c=document.getElementById("myCanvas");
+    var ctx=c.getContext("2d");
+    ctx.beginPath();
+    ctx.clearRect(blockItem['left']-1,blockItem['top']-1,blockItem['width']+3,blockItem['height']+3);
+    ctx.stroke();
+
 }

@@ -9,6 +9,9 @@ var page_width=960;  // 页面宽度
 var page_height=2000;  // 每一页，页面高度
 var matrix = [1,0,0,1];  //矩阵
 
+var canvas_width = page_width
+var canvas_height = page_height
+
 /**
 解析ajax 返回的数据
 **/
@@ -48,7 +51,10 @@ function parse_data(data){
 
 
     var document_zoom_out_height = page_height* document_page_height
+    canvas_width = page_width;
+    canvas_height = document_zoom_out_height;
     reset_canvas(page_width , document_zoom_out_height)
+
     console.log('Canvas size=[%f , %f]  document height %f ',
     page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
@@ -147,7 +153,6 @@ function create_block(block){
     var blockItem = {
         id:block['Id'],
         raw_block_type: block['BlockType'],   // LINE or WORD
-        is_split: false,                      // 是否做拆分
         newPoly:polyArray,
 //        polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
@@ -156,8 +161,10 @@ function create_block(block){
         };
 
      // 如果是行元素， 保存它的孩子元素 WORD
-     if(blockItem['raw_block_type'] == 'LINE' && block['Relationships'].length > 0){
+     if(blockItem['raw_block_type'] == 'LINE' ){
         blockItem['child_list'] = block['Relationships'][0]['Ids']
+        blockItem['child_count'] = block['Relationships'][0]['Ids'].length
+        blockItem['is_split'] = false  // 是否做拆分
      }
 
 
@@ -187,30 +194,33 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 */
 function is_display_block(blockItem){
 
-    //TODO: current_split_block_list 放入到VUE 变量中
-    var current_split_block_list = ['ee7da4fa-04ed-4844-869f-e007972eee8c',
-                                    'f30f4c52-cb4e-49c3-ba82-216ef381b6b4']
+    var current_split_block_list = vue.splitBlockList
 
     //LINE
     if (blockItem['raw_block_type'] == 'LINE'){
         for (var i=0 ; i<current_split_block_list.length; i++  ){
            var current_split_block_id = current_split_block_list[i]
             //如果是LINE block， 已经切分了， 就不显示
+//            console.log("***   333  ", blockItem['id'] , current_split_block_id)
             if(blockItem['id'] == current_split_block_id){
+                clear_block_item_in_canvas(blockItem)
                 return false
             }
         }
         return true
     }
 
-    //WORD
-    for (var i=0 ; i<current_split_block_list.length; i++  ){
-       var current_split_block_id = current_split_block_list[i]
-        //如果是LINE block， 已经切分了， 就不显示
-        if ( blockItem['raw_block_type'] == 'WORD' && blockItem['parent_block_id'] == current_split_block_id ){
-    //      console.log( 'parent_block_id: ',  blockItem['parent_block_id'] )
-            return true
+    if (blockItem['raw_block_type'] == 'WORD'){
+        //WORD
+        for (var i=0 ; i<current_split_block_list.length; i++  ){
+           var current_split_block_id = current_split_block_list[i]
+            //如果是LINE block， 已经切分了， 就不显示
+            if ( blockItem['parent_block_id'] == current_split_block_id ){
+//                console.log( '***44  parent_block_id: ',  blockItem['parent_block_id'] )
+                return true
+            }
         }
+        return false
     }
     return false
 }
@@ -224,23 +234,17 @@ function is_display_block(blockItem){
 function draw_block_inside(blockItem){
 
     if( is_display_block(blockItem) == false ){
-
         return
     }
 
      var strokeStyle = 'blue'
      if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
         strokeStyle="red";
+        clear_block_item_in_canvas(blockItem)
      }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
         strokeStyle="green";
      }
 
-
-    $('#myCanvas').clearCanvas({
-          x: blockItem['x']-1, y: blockItem['y']-1,
-          width: blockItem['width']+2,
-          height: blockItem['height']+2
-    });
 
 
 
@@ -252,6 +256,7 @@ function draw_block_inside(blockItem){
       width: blockItem['width'],
       height: blockItem['height'],
       cornerRadius: 1,
+      autosave: true,
       click: function() {
             click_item(blockItem)
         }
@@ -263,6 +268,7 @@ function draw_block_inside(blockItem){
      fillStyle: '#36c',
      fontSize: '10pt',
      text: blockItem['text'],
+     autosave: true,
      x: blockItem['x'] - $('#myCanvas').measureText('myText').width / 2, y: blockItem['y'],
      align: 'left',
    });
@@ -270,6 +276,11 @@ function draw_block_inside(blockItem){
 }
 
 function click_item(blockItem){
+
+    if(blockItem['raw_block_type'] == 'WORD'){
+        return
+    }
+
     var selected = blockItem['selected']
     console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
                     blockItem['left'], blockItem['id'], blockItem['text'] )
@@ -277,13 +288,16 @@ function click_item(blockItem){
      console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
     if(selected == 0){
         if(add_block_to_current_table(blockItem)){
+//            console.log("------------ click_item  1")
             blockItem['selected'] = 1
             blockItem['blockType'] = 1
             draw_block_inside(blockItem)
+        }else {
         }
 
     }else {
-            blockItem['selected'] = 0
+//            console.log("------------ click_item  3")
+//            blockItem['selected'] = 0
     }
 }
 
@@ -291,10 +305,15 @@ function click_item(blockItem){
 重新绘制所有元素
 */
 function redraw_canvas(){
+    $('#myCanvas').remove(); // this is my <canvas> element
+    $('#myCanvasParent').append('<canvas id="myCanvas" height="'+canvas_height+'" width="'+canvas_width+'" style="border:1px solid #000000;"></canvas>');
+
+
+    console.log("---------------------------redraw_canvas-----------------------    ")
      $('#myCanvas').clearCanvas()
-        for(i =0 ; i<vue.blockItemList.length; i++){
-            draw_block_inside(vue.blockItemList[i] )
-        }
+    for(i =0 ; i<vue.blockItemList.length; i++){
+        draw_block_inside(vue.blockItemList[i] )
+    }
      create_split_thItems_line()
 }
 

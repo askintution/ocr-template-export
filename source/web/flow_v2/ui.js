@@ -9,6 +9,7 @@ $(function(){
                 blockItemList:[], //当前页面解析的block元素
                 pageCount:0,
                 tableBlockList:[],
+                splitBlockList:[],   // 选择进行拆分的表头元素
                 currentTableBlock:{},
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/test2.json",
                 data:{}
@@ -28,7 +29,11 @@ $(function(){
                 delete_table_block:function(e){
                     table_block_id = e.currentTarget.name
                     delete_table_block(table_block_id)
-                }
+                },
+                split_function:function(e){
+                    split_block_id = e.currentTarget.name
+                    split_function(split_block_id)
+                },
              }
     })
     get_data(vue.data_url)
@@ -71,6 +76,33 @@ function get_data(url){
         $("#loading-icon").hide()
 
     })
+
+    var canvas=document.getElementById("myCanvas");
+        canvas.onmousedown = function(e){
+
+            console.log(e)
+            console.log('offsetX: %d offsetY :%d ',e['offsetX'],  e['offsetY'])
+            var offsetX = parseInt(e['offsetX'])
+            var offsetY = parseInt(e['offsetY'])
+            var c=document.getElementById("myCanvas");
+            var ctx=c.getContext("2d");
+
+            for ( i=0 ; i<vue.blockItemList.length; i++) {
+                blockItem = vue.blockItemList[i]
+    //          console.log(key + ' = ' + blockItem['top'] +'   offsetX: %d offsetY :%d ',  e['offsetX'],  e['offsetY']);
+              if(check_inside(blockItem, offsetX, offsetY)){
+                var selected = blockItem['selected']
+                console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
+                                blockItem['left'], blockItem['id'], blockItem['text'] )
+
+                console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
+
+
+              }
+            }//end for
+
+        }
+
 }
 
 
@@ -110,15 +142,17 @@ function add_table_block(){
 function add_block_to_current_table(blockItem){
 
 
+    console.log("blockItem id: ", blockItem['id'])
     if( !has_current_table_block()){
             return false;
     }
     var thItems = vue.currentTableBlock['thItems']
     blockItem['multi_line'] = false
+    blockItem['is_split'] = false
     blockItem['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
     blockItem['table_id']= vue.currentTableBlock['id']
     thItems.push(blockItem)
-    console.log(JSON.stringify(blockItem))
+    console.log('add_block_to_current_table : ', JSON.stringify(blockItem))
     vue.currentTableBlock['thItems'] =  thItems
     return true;
 }
@@ -506,3 +540,17 @@ function has_current_table_block(){
 }
 
 
+
+function split_function(id){
+
+    var blockItem = find_block_by_id(id)
+    if (blockItem['is_split'] == false){
+        vue.splitBlockList.push(blockItem['id'])
+    }else {
+        vue.splitBlockList.pop(blockItem['id'])
+    }
+    blockItem['is_split'] = !blockItem['is_split']
+    redraw_canvas()
+
+
+}
