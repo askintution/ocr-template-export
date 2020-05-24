@@ -288,15 +288,16 @@ function click_item(blockItem){
      console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
     if(selected == 0){
         if(add_block_to_current_table(blockItem)){
-//            console.log("------------ click_item  1")
+            console.log("------------ click_item  1")
             blockItem['selected'] = 1
             blockItem['blockType'] = 1
             draw_block_inside(blockItem)
         }else {
+            console.log("------------ click_item  2")
         }
 
     }else {
-//            console.log("------------ click_item  3")
+            console.log("------------ click_item  3")
 //            blockItem['selected'] = 0
     }
 }
@@ -314,33 +315,32 @@ function redraw_canvas(){
     for(i =0 ; i<vue.blockItemList.length; i++){
         draw_block_inside(vue.blockItemList[i] )
     }
-     create_split_thItems_line()
 }
 
 
-function create_split_thItems_line(){
+function create_split_thItems_line(box){
 
-    line_height = 30
-    line_width = 600
-    line_top = 100
-    line_left = 230
-    col_num = 4
+    line_height = box['bottom'] - box['top']
+    line_width = box['right'] - box['left']
+    line_top = box['top']
+    line_left = box['left']
+    col_num = box['th_count']
 
-    $('#myCanvas').drawLine({
-    layer: true,
-      strokeStyle: '#6c1',
-      strokeWidth: 2,
-      x1: line_left, y1: line_top,
-      x2: line_left + line_width, y2: line_top
-    });
-
-    $('#myCanvas').drawLine({
-    layer: true,
-      strokeStyle: '#6c1',
-      strokeWidth: 2,
-      x1: line_left, y1: line_top + line_height,
-      x2: line_left + line_width, y2: line_top + line_height,
-    });
+//    $('#myCanvas').drawLine({
+//    layer: true,
+//      strokeStyle: '#6c1',
+//      strokeWidth: 2,
+//      x1: line_left, y1: line_top,
+//      x2: line_left + line_width, y2: line_top
+//    });
+//
+//    $('#myCanvas').drawLine({
+//    layer: true,
+//      strokeStyle: '#6c1',
+//      strokeWidth: 2,
+//      x1: line_left, y1: line_top + line_height,
+//      x2: line_left + line_width, y2: line_top + line_height,
+//    });
 
     col_width = line_width / col_num
     col_item_y_poz_map = {}
@@ -348,9 +348,9 @@ function create_split_thItems_line(){
 
         draggable = true
 
-        if(i ==0 || i == col_num){
-            draggable = false
-        }
+//        if(i ==0 || i == col_num){
+//            draggable = false
+//        }
 
         x = col_width * i + line_left
         col_item_y_poz_map[i] = x
@@ -360,8 +360,8 @@ function create_split_thItems_line(){
           id: i,
           draggable: draggable,
           fillStyle: '#6c1',
-          x: x, y: line_top + line_height/2,
-          width: 2, height: line_height,
+          x: x, y: line_top + line_height *4 /2 ,
+          width: 2, height: line_height*4 ,
           restrictDragToAxis: 'x',
           dragstart: function() {
             // code to run when dragging starts

@@ -151,3 +151,58 @@ function clear_block_item_in_canvas(blockItem){
     ctx.stroke();
 
 }
+
+/**
+获取一个表头几个元素的， 坐标位置， top  left  right  height
+*/
+
+function  get_thItems_box(thItems, th_count){
+
+    if(thItems.length <2){
+        show_message(" 至少选择两列 ")
+        return ;
+    }
+
+    var max_top = 100000;
+    var max_left = 100000;
+    var max_right = 0;
+    var max_bottom = 0;
+
+    for (var i =0; i< thItems.length; i++ ){
+        if(thItems[i]['top'] < max_top){
+            max_top = thItems[i]['top']
+        }
+
+        if(thItems[i]['left'] < max_left){
+            max_left = thItems[i]['left']
+        }
+
+        if(thItems[i]['right'] > max_right){
+            max_right = thItems[i]['right']
+        }
+
+        if(thItems[i]['bottom'] > max_bottom){
+            max_bottom = thItems[i]['bottom']
+        }
+
+    }
+
+    var box = {
+        th_count: th_count,
+        top: max_top -3,
+        left: max_left -3,
+        right: max_right + 3,
+        bottom: max_bottom + 3
+    }
+    console.log("get_thItems_box: ", JSON.stringify(box))
+    return box
+}
+
+
+
+/**
+对 表头列元素进行排序
+*/
+function sort_block_by_x(a,b) {
+    return a['x']-b['x'];
+}

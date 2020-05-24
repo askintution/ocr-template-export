@@ -23,6 +23,9 @@ $(function(){
                 add_table_block:function(){
                     add_table_block()
                 },
+                create_table_split_th:function(){
+                    create_table_split_th()
+                },
                 create_table_template:function(){
                     create_table_template()
                 },
@@ -43,11 +46,13 @@ $(function(){
 /**
 
 Vue  对象的结构
---tableBlockList[]        //一共发现多少个相同的表格模板
+--tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
-    --item_width  //int
-    --thItems[]   // 列名称
+    --item_width                    //int   用户点击选择表头元素的数量
+    --th_count                      // 实际表格列数， 用户自己填入， 用户生成分割线
+    --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
+    --thItems[]                     // 列名称
       --blockItem{}   [.text, .multi_line：是否多行显示]
     --tableItems[] // 一个表头，可以在页面里面找到多个匹配的表格。
       --rowList[]
@@ -76,33 +81,6 @@ function get_data(url){
         $("#loading-icon").hide()
 
     })
-
-    var canvas=document.getElementById("myCanvas");
-        canvas.onmousedown = function(e){
-
-            console.log(e)
-            console.log('offsetX: %d offsetY :%d ',e['offsetX'],  e['offsetY'])
-            var offsetX = parseInt(e['offsetX'])
-            var offsetY = parseInt(e['offsetY'])
-            var c=document.getElementById("myCanvas");
-            var ctx=c.getContext("2d");
-
-            for ( i=0 ; i<vue.blockItemList.length; i++) {
-                blockItem = vue.blockItemList[i]
-    //          console.log(key + ' = ' + blockItem['top'] +'   offsetX: %d offsetY :%d ',  e['offsetX'],  e['offsetY']);
-              if(check_inside(blockItem, offsetX, offsetY)){
-                var selected = blockItem['selected']
-                console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
-                                blockItem['left'], blockItem['id'], blockItem['text'] )
-
-                console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
-
-
-              }
-            }//end for
-
-        }
-
 }
 
 
@@ -129,11 +107,15 @@ function add_table_block(){
     tableBlock['id']= uuid(8, 16)
 
     tableBlock['thItems'] = new Array()
+    tableBlock['th_count'] = 3               //默认表格列数
+
     vue.currentTableBlock = tableBlock
 
     vue.tableBlockList.push(tableBlock)
 
 }
+
+
 
 
 /**
@@ -183,9 +165,24 @@ function delete_table_block(table_block_id){
 }
 
 
+/**
+生成划分表格列的 分割线
+*/
+function create_table_split_th(){
+    if( !has_current_table_block()){
+        return ;
+    }
+    var thItems = vue.currentTableBlock['thItems']
+
+    var box = get_thItems_box(thItems, vue.currentTableBlock['th_count'])
+    create_split_thItems_line(box)
+
+}
+
+
 
 /**
-创建表格模板
+根据已经划分的表头  创建表格模板
 */
 function create_table_template(){
 
@@ -201,6 +198,10 @@ function create_table_template(){
         return ;
     }
     thItems.sort(sort_block_by_x);
+
+
+
+
 
     var tableItems = new Array()
 
@@ -514,15 +515,6 @@ function find_same_x_block_item_list(blockItem){
         }
     }//end for
     return  same_x_block_item_list
-}
-
-
-
-/**
-对 表头列元素进行排序
-*/
-function sort_block_by_x(a,b) {
-    return a['x']-b['x'];
 }
 
 /**

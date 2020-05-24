@@ -64,14 +64,14 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-7" class="overflow-auto" id="myCanvasParent" >
+        <div class="col-md-8" class="overflow-auto" id="myCanvasParent" >
             <canvas id="myCanvas" width="960" height="1200"
                   style="border:1px solid #000000;">
         </canvas>
         </div>
 
         <!-- Right Start -->
-        <div class="col-md-5">
+        <div class="col-md-4">
 
             <div>
                 <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加表格</button>
@@ -117,7 +117,15 @@
 
                 </div>
 
-                <div style="margin-top:10px">
+                <div class="input-group mb-3" style="margin-top:10px;width:200px">
+                    <input type="number"  v-model="tableBlock.th_count"
+                           οninput="value=value.replace(/[^\d]/g,'')" class="form-control" placeholder="表格列数" >
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" v-on:click="create_table_split_th()" >生成表头</button>
+                    </div>
+                </div>
+                <div style="margin-top:5px">
+
                     <button type="button" class="btn btn-primary"  v-on:click="create_table_template()" >
                         创建表格 <span class="badge badge-light"  v-text="tableBlock.thItems.length"></span>
                     </button>
