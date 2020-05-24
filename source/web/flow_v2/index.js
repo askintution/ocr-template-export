@@ -58,6 +58,8 @@ function parse_data(data){
     console.log('Canvas size=[%f , %f]  document height %f ',
     page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
+
+    console.log("----blockItemList length:   ", vue.blockItemList.length)
      //对元素进行缩放  如果是WORD 元素， 找到他们的父元素
      for(i =0 ; i<blockItemList.length; i++){
             var _blockItem = blockItemList[i]
@@ -194,7 +196,10 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 */
 function is_display_block(blockItem){
 
-    var current_split_block_list = vue.splitBlockList
+    var current_split_block_list = []
+    if(vue.currentTableBlock != null && vue.currentTableBlock['split_block_list'] != null){
+        current_split_block_list = vue.currentTableBlock['split_block_list']
+    }
 
     //LINE
     if (blockItem['raw_block_type'] == 'LINE'){
@@ -296,7 +301,8 @@ function click_item(blockItem){
 //            console.log("------------ click_item  1")
             blockItem['selected'] = 1
             blockItem['blockType'] = 1
-            draw_block_inside(blockItem)
+//            draw_block_inside(blockItem)
+            redraw_canvas()
         }else {
 //            console.log("------------ click_item  2")
         }

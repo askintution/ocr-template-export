@@ -1,6 +1,5 @@
 var vue ;
-MAX_ROW_MARGIN = 150 // 自动发现表格， 行之前的宽度
-MAX_COL_MARGIN = 100 //对齐表头的元素， 最大偏差
+MAX_ROW_MARGIN = 145 // 自动发现表格， 行之前的宽度
 $(function(){
 
     vue = new Vue({
@@ -9,7 +8,6 @@ $(function(){
                 blockItemList:[], //当前页面解析的block元素
                 pageCount:0,
                 tableBlockList:[],
-                splitBlockList:[],   // 选择进行拆分的表头元素
                 currentTableBlock:{},
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
@@ -49,6 +47,7 @@ Vue  对象的结构
 --tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
+    --split_block_list              // 选择进行拆分的表头元素
     --item_width                    //int   用户点击选择表头元素的数量
     --th_count                      // 实际表格列数， 用户自己填入， 用户生成分割线
     --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
@@ -86,11 +85,18 @@ function get_data(url){
 添加tableBlock  模板
 */
 function add_table_block(){
+    if (vue.tableBlockList.length >0 && vue.currentTableBlock['status'] !=2 ){
+        show_message("请先完成前一个表格[ "+vue.currentTableBlock['id']+" ]的制作")
+        return false;
+    }
+
+
     var tableBlock = {}
     tableBlock['id']= uuid(8, 16)
     tableBlock['thItems'] = new Array()
     tableBlock['th_count'] = 3               //默认表格列数
     tableBlock['status'] = 0
+    tableBlock['split_block_list'] = []
     vue.currentTableBlock = tableBlock
     vue.tableBlockList.push(tableBlock)
 }
@@ -139,12 +145,15 @@ function delete_table_block(table_block_id){
         return item['id'] != table_block_id
     });
 
+    vue.currentTableBlock['split_block_list'] = []
+
     for(i =0 ; i<vue.blockItemList.length; i++){
         var blockItem = vue.blockItemList[i]
         if(blockItem['table_id'] == table_block_id){
             blockItem['selected'] = 0
             blockItem['blockType'] = 0 //1 表头; 2 表格中的值
             blockItem['table_id']= ''
+            blockItem['is_split']= false
         }
     }
     redraw_canvas()
@@ -200,9 +209,13 @@ function create_table_template(){
     vue.currentTableBlock['status'] =2
     thItems.sort(sort_block_by_x);
 
-    //TODO:  step 1.  找到表头元素
+    //step 1.  找到表头元素 列划分
     var tableItems = new Array()
-    var tableItem = find_table_items_by_th_items(thItems)
+    var new_th_items = find_table_items_by_th_items(thItems)
+
+
+    //step 2.  找到行划分
+    find_split_row_poz_list(new_th_items[0])
 //    tableItems.push(tableItem)
 //
 //
@@ -303,22 +316,17 @@ function  find_table_items_by_th_items (old_th_items){
         }
     }
 
-
-    for(item of single_item_list){
-        console.log(" single_item_list  text", JSON.stringify(item['text']))
-    }
-
-
     var item_index = 0
 
     var new_th_items = []
     for (var i=1; i<th_x_poz_list.length ; i++){
-        console.log(th_x_poz_list[i-1] , th_x_poz_list[i])
+//        console.log(th_x_poz_list[i-1] , th_x_poz_list[i])
         while(item_index< single_item_list.length){
 
             var new_item = {}
             new_item['left'] = single_item_list[item_index]['left']
             new_item['top'] = single_item_list[item_index]['top']
+            new_item['bottom'] = single_item_list[item_index]['bottom']
             new_item['text'] =  ''
 
             for (var j= item_index; j<single_item_list.length; j++  ){
@@ -344,13 +352,16 @@ function  find_table_items_by_th_items (old_th_items){
 
             new_item['left'] = th_x_poz_list[i-1]
             new_item['right'] = th_x_poz_list[i]
-            console.log("new_item  [%s]  left=%d, right=%d", new_item['text'], new_item['left'], new_item['right'])
+            new_item['x'] = parseInt((new_item['left'] + new_item['right'])/ 2)
+            new_item['y'] = parseInt((new_item['bottom'] + new_item['top'])/ 2)
+            console.log("new_item  [%s] x=%d, y=%d left=%d, right=%d", new_item['text'],new_item['x'], new_item['y'],
+                new_item['left'], new_item['right'])
             new_th_items.push(new_item)
             break;
         }
-    }
+    }   //end for
 
-
+    return new_th_items
 
 }
 
@@ -373,61 +384,6 @@ function find_td_item_x_boundary(column_poz_list, j){
     return {'left':left, 'right': right}
 
 }
-
-
-function find_td_block_item( row_poz, same_x_block_item_list, j, column_poz_list, thItems, is_show ){
-
-    var left =0;
-    var right = 0;
-    if(j == 0 ){
-        left = 0;
-        right = column_poz_list[j+1]['start']
-    }else if (j== column_poz_list.length-1){
-        left = column_poz_list[j-1]['end']
-        right = page_width+1
-    }else {
-        left = column_poz_list[j-1]['end']
-        right = column_poz_list[j+1]['start']
-
-    }
-
-    var temp_text = ''
-    var targetBlockList = new Array();
-    for (var i=0; i<same_x_block_item_list.length; i++){
-        var tempBlock = same_x_block_item_list[i]
-
-        if(tempBlock['left'] >= left &&
-           tempBlock['right'] < right &&
-           tempBlock['y'] >= row_poz['start'] &&
-           tempBlock['y'] < row_poz['end'] ){
-
-                temp_text += (tempBlock['text']+ ' ')
-                targetBlockList.push(tempBlock)
-                if(!thItems[j]['multi_line']){ // 如果不是多行，结束循环
-                    break
-                }
-
-           }
-
-
-    }
-    var type = 0 ;
-    if(thItems[j]['multi_line']){
-        type = 1
-    }
-    if (temp_text == ''){
-        return null;
-    }
-    return {'type': type, 'value': temp_text, 'blockList': targetBlockList}
-}
-
-
-function display_block_item(tempBlock){
-    tempBlock['selected']= 1
-    tempBlock['blockType']= 2 // 0 未选中 1 表头; 2 表格中的值
-    tempBlock['table_id']= vue.currentTableBlock['id']
-}
-
 
 /**
 进行列分割
@@ -459,26 +415,32 @@ function find_split_column_poz_list(thItems){
 3: {start: 543, end: 722}
 */
 function find_split_row_poz_list(blockItem){
-//    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', blockItem['text'], blockItem['x'], blockItem['y'],
-//    blockItem['blockItem'], blockItem['right'])
+    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', blockItem['text'], blockItem['x'], blockItem['y'],
+    blockItem['blockItem'], blockItem['right'])
 
-    var last_item_y = blockItem['y']
+    var last_item_y = blockItem['bottom']
     var row_y_pos_list = new Array()
+
     for(var i=0; i< vue.blockItemList.length; i++ ){
 
         var tempBlockItem = vue.blockItemList[i]
-        if(tempBlockItem['y'] > blockItem['y']  &&
-         tempBlockItem['left']< blockItem['right']  &&
-         tempBlockItem['left']> blockItem['left'] - MAX_COL_MARGIN  &&
-         tempBlockItem['right']> blockItem['left']){
-//            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
-//            tempBlockItem['left'], tempBlockItem['right'])
+
+        if(tempBlockItem['raw_block_type'] == "LINE"){
+            continue
+        }
+
+        if(tempBlockItem['top'] > blockItem['bottom']  &&
+         tempBlockItem['left'] >= blockItem['left']  &&
+         tempBlockItem['right'] <= blockItem['right']){
+            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
+            tempBlockItem['left'], tempBlockItem['right'])
 
             //下一个行和上一个行差距太大， 就结束查找
-            if(tempBlockItem['y'] - last_item_y > MAX_ROW_MARGIN ){
+            if(tempBlockItem['bottom'] - last_item_y > MAX_ROW_MARGIN ){
+                console.log("  ****** ", tempBlockItem['text'], last_item_y)
                 break;
             }
-            last_item_y = tempBlockItem['y']
+            last_item_y = tempBlockItem['bottom']
             row_y_pos_list.push(tempBlockItem['top'])
         }
 
@@ -501,31 +463,8 @@ function find_split_row_poz_list(blockItem){
         row_poz_list.push({'start':last_y, 'end':last_y + MAX_ROW_MARGIN })
     }
 
-//    console.log('row_poz_list', row_poz_list)
+    console.log('row_poz_list  length: %d', row_poz_list.length)
     return  row_poz_list
-}
-
-
-/**
-找到一个表头元素  下方的所有元素
-*/
-function find_same_x_block_item_list(blockItem){
-//    console.log('\n blockItem = [%s]  [x=%d, y=%d, left=%d, right=%d]',
-//    blockItem['text'], blockItem['x'], blockItem['y'], blockItem['left'], blockItem['right'])
-
-    var same_x_block_item_list = new Array()
-    for(var i=0; i< vue.blockItemList.length; i++ ){
-
-        var tempBlockItem = vue.blockItemList[i]
-        if(tempBlockItem['y'] > blockItem['y']  &&
-         tempBlockItem['left']< blockItem['right']  &&  tempBlockItem['right']> blockItem['left']){
-
-//            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'],
-//              tempBlockItem['x'], tempBlockItem['y'],tempBlockItem['left'], tempBlockItem['right'])
-            same_x_block_item_list.push(tempBlockItem)
-        }
-    }//end for
-    return  same_x_block_item_list
 }
 
 /**
@@ -544,13 +483,16 @@ function has_current_table_block(){
 
 
 
+/**
+对一个LINE 元素进行拆分或者合并操作
+*/
 function split_function(id){
 
     var blockItem = find_block_by_id(id)
     if (blockItem['is_split'] == false){
-        vue.splitBlockList.push(blockItem['id'])
+        vue.currentTableBlock['split_block_list'].push(blockItem['id'])
     }else {
-        vue.splitBlockList.pop(blockItem['id'])
+        vue.currentTableBlock['split_block_list'].pop(blockItem['id'])
     }
     blockItem['is_split'] = !blockItem['is_split']
     redraw_canvas()
