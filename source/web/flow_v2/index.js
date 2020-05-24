@@ -254,7 +254,7 @@ function draw_block_inside(blockItem){
       strokeWidth: 1,
       x: blockItem['x'], y: blockItem['y'],
       width: blockItem['width'],
-      height: blockItem['height'],
+      height: blockItem['height']-5,
       cornerRadius: 1,
       autosave: true,
       click: function() {
@@ -266,7 +266,7 @@ function draw_block_inside(blockItem){
    $('#myCanvas').drawText({
      layer: true,
      fillStyle: '#36c',
-     fontSize: '9pt',
+     fontSize: '8pt',
      text: blockItem['text'],
      autosave: true,
      x: blockItem['x'] - $('#myCanvas').measureText('myText').width / 2, y: blockItem['y'],
@@ -293,16 +293,16 @@ function click_item(blockItem){
      console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
     if(selected == 0){
         if(add_block_to_current_table(blockItem)){
-            console.log("------------ click_item  1")
+//            console.log("------------ click_item  1")
             blockItem['selected'] = 1
             blockItem['blockType'] = 1
             draw_block_inside(blockItem)
         }else {
-            console.log("------------ click_item  2")
+//            console.log("------------ click_item  2")
         }
 
     }else {
-            console.log("------------ click_item  3")
+//            console.log("------------ click_item  3")
 //            blockItem['selected'] = 0
     }
 }
@@ -338,7 +338,7 @@ function create_split_thItems_line(box){
     col_item_y_poz_map = new Map()
     for(var i=0 ; i< col_num + 1; i++){
         x = col_width * i + line_left
-        col_item_y_poz_map.set(i, x)
+        col_item_y_poz_map.set(i, parseInt(x))
 
 
          $('#myCanvas').drawRect({
@@ -351,10 +351,11 @@ function create_split_thItems_line(box){
           restrictDragToAxis: 'x',
           dragstop: function(layer) {
 //           console.log(layer['x'] ,layer['id']  )
-           col_item_y_poz_map.set(layer['id'], layer['x'])
+           col_item_y_poz_map.set(layer['id'], parseInt(layer['x']))
            vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
 
           }
         });
     }
+    vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
 }

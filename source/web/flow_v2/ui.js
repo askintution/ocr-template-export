@@ -198,34 +198,29 @@ function create_table_template(){
     }
 
     vue.currentTableBlock['status'] =2
-
-    vue.currentTableBlock['th_x_poz_list']
-
     thItems.sort(sort_block_by_x);
 
-
-    var tableItems = new Array()
-
     //TODO:  step 1.  找到表头元素
+    var tableItems = new Array()
     var tableItem = find_table_items_by_th_items(thItems)
-    tableItems.push(tableItem)
-
-
-
-    // 一个页面里面会有多个该表头开始的表格, 使用 thItems 再找相同的表头
-    var total_result_th_item_list = find_same_th_items_in_document(thItems)
-    if (total_result_th_item_list !=null && total_result_th_item_list.length>0){
-        for(var i=0; i<total_result_th_item_list.length; i++){
-            var _thItems = total_result_th_item_list[i]
-            var _tableItem = find_table_items_by_th_items(_thItems)
-            tableItems.push(_tableItem)
-        }
-
-    }
-
-
-    vue.currentTableBlock['tableItems'] = tableItems
-    redraw_canvas()
+//    tableItems.push(tableItem)
+//
+//
+//
+//    // 一个页面里面会有多个该表头开始的表格, 使用 thItems 再找相同的表头
+//    var total_result_th_item_list = find_same_th_items_in_document(thItems)
+//    if (total_result_th_item_list !=null && total_result_th_item_list.length>0){
+//        for(var i=0; i<total_result_th_item_list.length; i++){
+//            var _thItems = total_result_th_item_list[i]
+//            var _tableItem = find_table_items_by_th_items(_thItems)
+//            tableItems.push(_tableItem)
+//        }
+//
+//    }
+//
+//
+//    vue.currentTableBlock['tableItems'] = tableItems
+//    redraw_canvas()
 
 }
 
@@ -290,60 +285,73 @@ function find_same_th_items_in_document(thItems){
 
 }
 
+/**
+ 通过分割线找到表头元素
+*/
+function  find_table_items_by_th_items (old_th_items){
+    var th_x_poz_list = vue.currentTableBlock['th_x_poz_list']
 
-function  find_table_items_by_th_items (thItems){
-
-    var row_poz_list = find_split_row_poz_list(thItems[0])
-    var column_poz_list = find_split_column_poz_list(thItems)
-
-    if(row_poz_list.length ==0 ){
-        show_message("["+thItems[0]['text']+"]未发现相关元素")
-        return ;
-    }
-
-
-    var total_same_x_block_item_list = new Array()
-    for (var j=0; j<thItems.length ; j++ ){
-        thItems[j]['selected']= 1
-        thItems[j]['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
-        thItems[j]['table_id']= vue.currentTableBlock['id']
-        var same_x_block_item_list = find_same_x_block_item_list(thItems[j])
-        total_same_x_block_item_list.push(same_x_block_item_list)
-    }
-    var rowList = new Array();
-    for(var i=0; i< row_poz_list.length ; i++ ){
-//        console.log('i=%d, [start=%d,   end=%d]', i, row_poz_list[i]['start'], row_poz_list[i]['end'])
-
-
-        var find_all_td_in_row_flag = true // 某一行是否全部发现了元素
-        var row = new Array()
-        for(var j=0; j<total_same_x_block_item_list.length; j++){
-            var td = find_td_block_item( row_poz_list[i], total_same_x_block_item_list[j], j, column_poz_list, thItems)
-            row.push(td)
-            if (td == null ){
-                find_all_td_in_row_flag = false
-            }
-        }//end for
-        if (!find_all_td_in_row_flag){
-            break;
+    var single_item_list = []  //include word and line block
+    for(var item of old_th_items){
+        if(item['is_split'] == false){
+            single_item_list.push(item)
         }else {
-            for(var z=0 ; z< row.length; z++){
-                var blockList = row[z]['blockList']
-
-                for(var t=0; t<blockList.length; t++){
-                    display_block_item(blockList[t])
-                }
-
+            var child_list = item['child_list']
+            for(var child_id of child_list){
+                single_item_list.push(find_block_by_id(child_id))
             }
         }
+    }
+
+
+    for(item of single_item_list){
+        console.log(" single_item_list  text", JSON.stringify(item['text']))
+    }
+
+
+    var item_index = 0
+
+    var new_th_items = []
+    for (var i=1; i<th_x_poz_list.length ; i++){
+        console.log(th_x_poz_list[i-1] , th_x_poz_list[i])
+        while(item_index< single_item_list.length){
+
+            var new_item = {}
+            new_item['left'] = single_item_list[item_index]['left']
+            new_item['top'] = single_item_list[item_index]['top']
+            new_item['text'] =  ''
+
+            for (var j= item_index; j<single_item_list.length; j++  ){
+//                console.log(" th_x_poz_list: [%d] item_index  %d , j= [%d]   [%s]", i, item_index , j, single_item_list[j]['text'])
+                if (single_item_list[j]['x'] > th_x_poz_list[i-1]  &&
+                    single_item_list[j]['x'] < th_x_poz_list[i] ){
+                    new_item['text'] += ' '+ single_item_list[j]['text']
+                    new_item['right'] = single_item_list[j]['right']
+
+
+                    if( single_item_list[j]['bottom'] > new_item['bottom'] ){
+                        new_item['bottom'] = single_item_list[j]['bottom']
+                    }
+
+                    if( single_item_list[j]['top'] < new_item['top'] ){
+                        new_item['top'] = single_item_list[j]['top']
+                    }
+                    item_index += 1
+                }else {
+                    break;
+                }
+            }
+
+            new_item['left'] = th_x_poz_list[i-1]
+            new_item['right'] = th_x_poz_list[i]
+            console.log("new_item  [%s]  left=%d, right=%d", new_item['text'], new_item['left'], new_item['right'])
+            new_th_items.push(new_item)
+            break;
+        }
+    }
 
 
 
-        rowList.push(row)
-
-    }//end for
-
-    return rowList;
 }
 
 
