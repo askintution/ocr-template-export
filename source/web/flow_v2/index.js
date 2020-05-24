@@ -266,7 +266,7 @@ function draw_block_inside(blockItem){
    $('#myCanvas').drawText({
      layer: true,
      fillStyle: '#36c',
-     fontSize: '10pt',
+     fontSize: '9pt',
      text: blockItem['text'],
      autosave: true,
      x: blockItem['x'] - $('#myCanvas').measureText('myText').width / 2, y: blockItem['y'],
@@ -279,6 +279,11 @@ function click_item(blockItem){
 
     if(blockItem['raw_block_type'] == 'WORD'){
         return
+    }
+    console.log("----------------vue.currentTableBlock['status']   ", vue.currentTableBlock['status'])
+    if (vue.currentTableBlock['status'] !=0 ){
+        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
+        return false;
     }
 
     var selected = blockItem['selected']
@@ -318,61 +323,37 @@ function redraw_canvas(){
 }
 
 
+/**
+滑动分割线， 找到适合分割表格的位置
+*/
 function create_split_thItems_line(box){
 
     line_height = box['bottom'] - box['top']
     line_width = box['right'] - box['left']
     line_top = box['top']
     line_left = box['left']
-    col_num = box['th_count']
-
-//    $('#myCanvas').drawLine({
-//    layer: true,
-//      strokeStyle: '#6c1',
-//      strokeWidth: 2,
-//      x1: line_left, y1: line_top,
-//      x2: line_left + line_width, y2: line_top
-//    });
-//
-//    $('#myCanvas').drawLine({
-//    layer: true,
-//      strokeStyle: '#6c1',
-//      strokeWidth: 2,
-//      x1: line_left, y1: line_top + line_height,
-//      x2: line_left + line_width, y2: line_top + line_height,
-//    });
-
+    col_num = parseInt(box['th_count'])
+//    console.log("     create_split_thItems_line  col_num: [%d]  ", col_num  )
     col_width = line_width / col_num
-    col_item_y_poz_map = {}
+    col_item_y_poz_map = new Map()
     for(var i=0 ; i< col_num + 1; i++){
-
-        draggable = true
-
-//        if(i ==0 || i == col_num){
-//            draggable = false
-//        }
-
         x = col_width * i + line_left
-        col_item_y_poz_map[i] = x
+        col_item_y_poz_map.set(i, x)
+
 
          $('#myCanvas').drawRect({
           layer: true,
           id: i,
-          draggable: draggable,
+          draggable: true,
           fillStyle: '#6c1',
           x: x, y: line_top + line_height *4 /2 ,
           width: 2, height: line_height*4 ,
           restrictDragToAxis: 'x',
-          dragstart: function() {
-            // code to run when dragging starts
-          },
-          drag: function(layer) {
-          },
           dragstop: function(layer) {
-           console.log(layer['x'] ,layer['id']  )
-           col_item_y_poz_map[layer['id']] = layer['x']
+//           console.log(layer['x'] ,layer['id']  )
+           col_item_y_poz_map.set(layer['id'], layer['x'])
+           vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
 
-           console.log( col_item_y_poz_map )
           }
         });
     }

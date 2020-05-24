@@ -198,11 +198,29 @@ function  get_thItems_box(thItems, th_count){
     return box
 }
 
-
-
 /**
 对 表头列元素进行排序
 */
 function sort_block_by_x(a,b) {
     return a['x']-b['x'];
+}
+
+/**
+显示错误消息
+*/
+function show_message(message){
+    $("#myModalContent").html(message)
+    $('#myModal').modal('show')
+}
+
+function sort_map_return_list(data_map){
+    var dataArray= []
+    for (var item of data_map ){
+        dataArray.push(item[1])
+    }
+    dataArray = dataArray.sort(function(a,b){return a-b})
+
+    console.log('sort map : ', JSON.stringify(dataArray))
+    return dataArray;
+
 }

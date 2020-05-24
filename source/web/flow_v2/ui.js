@@ -11,7 +11,7 @@ $(function(){
                 tableBlockList:[],
                 splitBlockList:[],   // 选择进行拆分的表头元素
                 currentTableBlock:{},
-                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr/test2.json",
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
              },methods:{
@@ -52,18 +52,17 @@ Vue  对象的结构
     --item_width                    //int   用户点击选择表头元素的数量
     --th_count                      // 实际表格列数， 用户自己填入， 用户生成分割线
     --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
-    --thItems[]                     // 列名称
+    --th_x_poz_list                 // 用来分割表头元素横线的 X 坐标 集合
+    --thItems[]                     // 用户点击选择的列名称 ， 还会进行拆分 ， 生成新的new_thItems。
       --blockItem{}   [.text, .multi_line：是否多行显示]
+    --new_thItems[]
     --tableItems[] // 一个表头，可以在页面里面找到多个匹配的表格。
       --rowList[]
         --row[]
           --td{}
             --type
             --value
-
-
 */
-
 
 
 function get_data(url){
@@ -83,36 +82,17 @@ function get_data(url){
     })
 }
 
-
-
-function check_inside(blockItem, offsetX, offsetY){
-        if( offsetX>blockItem['left'] && offsetX< blockItem['left'] + blockItem['width'] &&
-            offsetY>blockItem['top'] && offsetY< blockItem['top'] + blockItem['height'] ){
-            return true
-         }else{
-            return false;
-         }
-}
-
-function show_message(message){
-    $("#myModalContent").html(message)
-    $('#myModal').modal('show')
-}
-
-
-
+/**
+添加tableBlock  模板
+*/
 function add_table_block(){
-
     var tableBlock = {}
     tableBlock['id']= uuid(8, 16)
-
     tableBlock['thItems'] = new Array()
     tableBlock['th_count'] = 3               //默认表格列数
-
+    tableBlock['status'] = 0
     vue.currentTableBlock = tableBlock
-
     vue.tableBlockList.push(tableBlock)
-
 }
 
 
@@ -128,12 +108,18 @@ function add_block_to_current_table(blockItem){
     if( !has_current_table_block()){
             return false;
     }
+    if (vue.currentTableBlock['status'] !=0 ){
+        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
+        return false;
+    }
+
     var thItems = vue.currentTableBlock['thItems']
     blockItem['multi_line'] = false
     blockItem['is_split'] = false
     blockItem['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
     blockItem['table_id']= vue.currentTableBlock['id']
     thItems.push(blockItem)
+    vue.currentTableBlock['th_count'] = thItems.length
     console.log('add_block_to_current_table : ', JSON.stringify(blockItem))
     vue.currentTableBlock['thItems'] =  thItems
     return true;
@@ -172,7 +158,18 @@ function create_table_split_th(){
     if( !has_current_table_block()){
         return ;
     }
+    if (vue.currentTableBlock['status'] ==2 ){
+        show_message("已经生成分割线， 如果需要重新生成， 请先选择'删除表格' ")
+        return
+    }
+
     var thItems = vue.currentTableBlock['thItems']
+    if(thItems.length<2){
+        show_message("表格列数最少为2个")
+        return ;
+    }
+    redraw_canvas()
+    vue.currentTableBlock['status'] = 1
 
     var box = get_thItems_box(thItems, vue.currentTableBlock['th_count'])
     create_split_thItems_line(box)
@@ -190,24 +187,30 @@ function create_table_template(){
     if( !has_current_table_block()){
         return ;
     }
+    if (vue.currentTableBlock['status'] !=1 ){
+        show_message("请先 '生成表头'")
+        return false;
+    }
     var thItems = vue.currentTableBlock['thItems']
-
-
     if(thItems.length<2){
         show_message("表格列数最少为2个")
         return ;
     }
+
+    vue.currentTableBlock['status'] =2
+
+    vue.currentTableBlock['th_x_poz_list']
+
     thItems.sort(sort_block_by_x);
-
-
-
 
 
     var tableItems = new Array()
 
-
+    //TODO:  step 1.  找到表头元素
     var tableItem = find_table_items_by_th_items(thItems)
     tableItems.push(tableItem)
+
+
 
     // 一个页面里面会有多个该表头开始的表格, 使用 thItems 再找相同的表头
     var total_result_th_item_list = find_same_th_items_in_document(thItems)
