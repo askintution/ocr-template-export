@@ -93,13 +93,11 @@
                         <tr>
                             <th width="10%"> Id</th>
                             <th width="60%">定位元素</th>
-                            <th width="10%">操作</th>
                         </tr>
 
                         <tr v-for="(thItem, index) of tableBlock.thItems" >
                             <td><span  v-text="index + 1" /></td>
                             <td><span    v-text="thItem.text" /></td>
-                            <td><a href="#" >删除</a></td>
 
                         </tr>
 

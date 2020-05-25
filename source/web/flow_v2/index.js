@@ -330,6 +330,7 @@ function draw_split_table_line(){
         var right = col_poz_list[col_poz_list.length-1]['right']
 
 
+        console.log("----------------------*************************))))))))))))))))))))))))")
         $('#myCanvas').drawLine({
           strokeStyle: '#000',
           strokeWidth: 1,
