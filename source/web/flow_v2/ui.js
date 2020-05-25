@@ -29,11 +29,7 @@ $(function(){
                 delete_table_block:function(e){
                     table_block_id = e.currentTarget.name
                     delete_table_block(table_block_id)
-                },
-                split_function:function(e){
-                    split_block_id = e.currentTarget.name
-                    split_function(split_block_id)
-                },
+                }
              }
     })
     get_data(vue.data_url)

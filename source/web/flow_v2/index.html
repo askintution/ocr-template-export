@@ -94,7 +94,6 @@
                             <th width="5%"> Id</th>
                             <th width="15%"> 主列</th>
                             <th width="40%">名称</th>
-                            <th width="10%">拆分</th>
                             <th width="10%">操作</th>
                         </tr>
 
@@ -102,11 +101,6 @@
                             <td><span  v-text="index + 1" /></td>
                             <td><input   type="radio"  v-model="thItem.multi_line" /></td>
                             <td><span    v-text="thItem.text" /></td>
-                            <td>
-                                <input   type="checkbox"  v-model="thItem.is_split"    v-on:click="split_function($event)"
-                                         v-bind:name="thItem.id"
-                                />
-                            </td>
                             <td><a href="#" >删除</a></td>
 
                         </tr>
