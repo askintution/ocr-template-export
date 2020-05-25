@@ -42,12 +42,13 @@ Vue  对象的结构
 --tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
-    --split_block_list              // 选择进行拆分的表头元素
     --item_width                    //int   用户点击选择表头元素的数量
     --th_count                      // 实际表格列数， 用户自己填入， 用户生成分割线
     --row_max_height                // 用户输入的行最大的可能高度， 辅助进行识别
     --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
-    --th_x_poz_list                 // 用来分割表头元素横线的 X 坐标 集合
+    --th_x_poz_list
+    --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
+    --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
     --thItems[]                     // 用户点击选择的列名称 ， 还会进行拆分 ， 生成新的new_thItems。
       --blockItem{}   [.text, .multi_line：是否多行显示]
     --new_thItems[]
@@ -93,7 +94,6 @@ function add_table_block(){
     tableBlock['th_count'] = 0               //默认表格列数
     tableBlock['row_max_height'] = 100
     tableBlock['status'] = 0
-    tableBlock['split_block_list'] = []
     vue.currentTableBlock = tableBlock
     vue.tableBlockList.push(tableBlock)
 }
@@ -117,8 +117,6 @@ function add_block_to_current_table(blockItem){
     }
 
     var thItems = vue.currentTableBlock['thItems']
-    blockItem['multi_line'] = false
-    blockItem['is_split'] = false
     blockItem['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
     blockItem['table_id']= vue.currentTableBlock['id']
     thItems.push(blockItem)
@@ -142,7 +140,6 @@ function delete_table_block(table_block_id){
         return item['id'] != table_block_id
     });
 
-    vue.currentTableBlock['split_block_list'] = []
 
     for(i =0 ; i<vue.blockItemList.length; i++){
         var blockItem = vue.blockItemList[i]
@@ -150,7 +147,6 @@ function delete_table_block(table_block_id){
             blockItem['selected'] = 0
             blockItem['blockType'] = 0 //1 表头; 2 表格中的值
             blockItem['table_id']= ''
-            blockItem['is_split']= false
         }
     }
     redraw_canvas()
@@ -328,14 +324,7 @@ function  find_table_items_by_th_items (old_th_items){
 
     var single_item_list = []  //include word and line block
     for(var item of old_th_items){
-        if(item['is_split'] == false){
-            single_item_list.push(item)
-        }else {
-            var child_list = item['child_list']
-            for(var child_id of child_list){
-                single_item_list.push(find_block_by_id(child_id))
-            }
-        }
+        single_item_list.push(item)
     }
 
     var item_index = 0
