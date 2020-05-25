@@ -310,8 +310,36 @@ function draw_split_table_line(){
     }
 
 
-//      vue.currentTableBlock['col_poz_list'] = col_poz_list
-//      vue.currentTableBlock['row_poz_list'] = row_poz_list
+    for( var tableBlock of vue.tableBlockList){
+
+
+        var col_poz_list = tableBlock['col_poz_list']
+        var row_poz_list = tableBlock['row_poz_list']
+
+        if( col_poz_list == null || col_poz_list.length ==0
+            || row_poz_list == null || row_poz_list.length ==0 ){
+
+            return
+        }
+
+        var top = row_poz_list[0]['top']
+        var bottom = row_poz_list[row_poz_list.length-1]['bottom']
+
+
+        var left = col_poz_list[0]['left']
+        var right = col_poz_list[col_poz_list.length-1]['right']
+
+
+        $('#myCanvas').drawLine({
+          strokeStyle: '#000',
+          strokeWidth: 1,
+          strokeDash: [5],
+          strokeDashOffset: 0,
+          x1: left, y1: top,
+          x2: right, y2: bottom,
+        });
+
+    }
 
 }
 

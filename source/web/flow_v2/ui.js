@@ -248,7 +248,7 @@ function  find_table_items_by_th_items (old_th_items){
 
     var item_index = 0
 
-    var new_th_items = []
+    var col_poz_list = []
     for (var i=1; i<th_x_poz_list.length ; i++){
 //        console.log(th_x_poz_list[i-1] , th_x_poz_list[i])
         while(item_index< single_item_list.length){
@@ -289,12 +289,12 @@ function  find_table_items_by_th_items (old_th_items){
             new_item['width'] = new_item['right'] - new_item['left']
             console.log("new_item  [%s] x=%d, y=%d left=%d, right=%d, height=%d", new_item['text'],new_item['x'], new_item['y'],
                 new_item['left'], new_item['right'], new_item['height'])
-            new_th_items.push(new_item)
+            col_poz_list.push(new_item)
             break;
         }
     }   //end for
 
-    return new_th_items
+    return col_poz_list
 
 }
 
