@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+
+<canvas width="1024" height="600"></canvas>
+
+</body>
+<script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+<script src="jcanvas.min.js"></script>
+<script>
+$('canvas')
+.drawArc({
+  layer: true,
+  draggable: true,
+  fillStyle: '#36c',
+  x: 150, y: 150,
+  radius: 10,
+  restrictDragToAxis: 'y',
+   dragstop: function(layer) {
+   y = layer['y']
+    console.log(layer['y'])
+    $('canvas').clearCanvas()
+    $('canvas').drawRect({
+          layer: true,
+          draggable: true,
+          fillStyle: '#6c1',
+          x: 100, y: 100,
+          width: 2, height: 100+y,
+          restrictDragToAxis: 'y'
+        });
+
+   }
+})
+
+
+
+
+
+</script>
+</html>

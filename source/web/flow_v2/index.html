@@ -85,6 +85,8 @@
                 <ul>
                     <li><small>点击选择要选取的列</small></li>
                     <li><small>确认选择的元素是表格的表头， 并且在同一水平线上</small></li>
+                    <li><small>最表头元素进行拆分</small></li>
+                    <li><small>选择最大行高， 包括表头高度和行的最大高度的和</small></li>
                 </ul>
                 <div  >
                     <table width="60%" style="font-size:13px;">
@@ -115,7 +117,11 @@
 
                 </div>
 
-                <div class="input-group mb-3" style="margin-top:10px;width:200px">
+                <div class="input-group mb-3" style="margin-top:10px;width:400px">
+                    <label style="margin:5px;"><small>最大行高: </small></label>
+                    <input type="number"  v-model="tableBlock.row_max_height"
+                           οninput="value=value.replace(/[^\d]/g,'')" class="form-control" placeholder="最大行高" >
+                    <label style="margin:5px;"><small>表格列数: </small></label>
                     <input type="number"  v-model="tableBlock.th_count"
                            οninput="value=value.replace(/[^\d]/g,'')" class="form-control" placeholder="表格列数" >
                     <div class="input-group-append">

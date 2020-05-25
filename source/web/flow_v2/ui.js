@@ -1,5 +1,4 @@
 var vue ;
-MAX_ROW_MARGIN = 145 // 自动发现表格， 行之前的宽度
 $(function(){
 
     vue = new Vue({
@@ -50,6 +49,7 @@ Vue  对象的结构
     --split_block_list              // 选择进行拆分的表头元素
     --item_width                    //int   用户点击选择表头元素的数量
     --th_count                      // 实际表格列数， 用户自己填入， 用户生成分割线
+    --row_max_height                // 用户输入的行最大的可能高度， 辅助进行识别
     --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
     --th_x_poz_list                 // 用来分割表头元素横线的 X 坐标 集合
     --thItems[]                     // 用户点击选择的列名称 ， 还会进行拆分 ， 生成新的new_thItems。
@@ -94,7 +94,8 @@ function add_table_block(){
     var tableBlock = {}
     tableBlock['id']= uuid(8, 16)
     tableBlock['thItems'] = new Array()
-    tableBlock['th_count'] = 3               //默认表格列数
+    tableBlock['th_count'] = 0               //默认表格列数
+    tableBlock['row_max_height'] = 100
     tableBlock['status'] = 0
     tableBlock['split_block_list'] = []
     vue.currentTableBlock = tableBlock
@@ -181,7 +182,9 @@ function create_table_split_th(){
     vue.currentTableBlock['status'] = 1
 
     var box = get_thItems_box(thItems, vue.currentTableBlock['th_count'])
-    create_split_thItems_line(box)
+
+    var row_max_height = vue.currentTableBlock['row_max_height']
+    create_split_thItems_line(box, row_max_height)
 
 }
 
@@ -214,8 +217,15 @@ function create_table_template(){
     var new_th_items = find_table_items_by_th_items(thItems)
 
 
-    //step 2.  找到行划分
-    find_split_row_poz_list(new_th_items[0])
+    //step 2.  找到行划分  TODO:  可以让用户自己选按照哪一列划分行， 目前选第一列， 因为一般情况下第一列不为空
+    var row_poz_list =  find_split_row_poz_list(new_th_items[0])
+
+
+    //step 3. 利用行列 进行拆分
+
+    split_td_by_col_row(new_th_items, row_poz_list)
+
+
 //    tableItems.push(tableItem)
 //
 //
@@ -236,6 +246,29 @@ function create_table_template(){
 //    redraw_canvas()
 
 }
+
+
+/**
+根据行和列的值划分表格
+*/
+
+function split_td_by_col_row(new_th_items, row_poz_list){
+
+
+    for(var row of row_poz_list){
+
+        for(var col of new_th_items){
+
+            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
+
+        }
+
+
+    }
+
+
+}
+
 
 /**
 用用户选择的表头， 到文档里面找相同的表格。
@@ -354,8 +387,11 @@ function  find_table_items_by_th_items (old_th_items){
             new_item['right'] = th_x_poz_list[i]
             new_item['x'] = parseInt((new_item['left'] + new_item['right'])/ 2)
             new_item['y'] = parseInt((new_item['bottom'] + new_item['top'])/ 2)
-            console.log("new_item  [%s] x=%d, y=%d left=%d, right=%d", new_item['text'],new_item['x'], new_item['y'],
-                new_item['left'], new_item['right'])
+
+            new_item['height'] = new_item['bottom'] - new_item['top']
+            new_item['width'] = new_item['right'] - new_item['left']
+            console.log("new_item  [%s] x=%d, y=%d left=%d, right=%d, height=%d", new_item['text'],new_item['x'], new_item['y'],
+                new_item['left'], new_item['right'], new_item['height'])
             new_th_items.push(new_item)
             break;
         }
@@ -415,11 +451,15 @@ function find_split_column_poz_list(thItems){
 3: {start: 543, end: 722}
 */
 function find_split_row_poz_list(blockItem){
-    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', blockItem['text'], blockItem['x'], blockItem['y'],
-    blockItem['blockItem'], blockItem['right'])
+
+    var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
+    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
+    blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
 
     var last_item_y = blockItem['bottom']
     var row_y_pos_list = new Array()
+
+//    row_y_pos_list.push(last_item_y)
 
     for(var i=0; i< vue.blockItemList.length; i++ ){
 
@@ -432,38 +472,50 @@ function find_split_row_poz_list(blockItem){
         if(tempBlockItem['top'] > blockItem['bottom']  &&
          tempBlockItem['left'] >= blockItem['left']  &&
          tempBlockItem['right'] <= blockItem['right']){
-            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
-            tempBlockItem['left'], tempBlockItem['right'])
 
-            //下一个行和上一个行差距太大， 就结束查找
-            if(tempBlockItem['bottom'] - last_item_y > MAX_ROW_MARGIN ){
-                console.log("  ****** ", tempBlockItem['text'], last_item_y)
+
+            //下一个行和上一个行差距太大， 就结束查找 ， 最后一个元素作为区分表格的底部
+            if(tempBlockItem['bottom'] - last_item_y > row_max_height ){
+                console.log(" ** 找到行元素结尾 [%s]  y = ", tempBlockItem['text'], tempBlockItem['top'])
                 break;
             }
+            if(tempBlockItem['bottom'] - last_item_y < tempBlockItem['bottom'] - tempBlockItem['top'] ){
+//                console.log("###### ", tempBlockItem['text'], last_item_y)
+                continue;
+            }
+            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
+                        tempBlockItem['left'], tempBlockItem['right'])
+
             last_item_y = tempBlockItem['bottom']
             row_y_pos_list.push(tempBlockItem['top'])
         }
 
     }//end for
 
-    console.log(row_y_pos_list)
+    for(var poz of row_y_pos_list){
+        console.log(" 找到的 y 坐标 用于划分行---------------- %d ", poz)
+    }
 
     var row_poz_list = new Array()
     if(row_y_pos_list.length ==0 ){
         console.log('未找到表格元素')
     }else if(row_y_pos_list.length == 1){
         //150 经验值， 一个表格最大的高度
-        row_poz_list.push({'start':row_y_pos_list[0], 'end':row_y_pos_list[0] + MAX_ROW_MARGIN })
+        row_poz_list.push({'top':row_y_pos_list[0], 'bottom':row_y_pos_list[0] + row_max_height })
     }else {
 
         for(var i=1; i<row_y_pos_list.length; i++){
-            row_poz_list.push({'start':row_y_pos_list[i-1], 'end':row_y_pos_list[i] })
+            row_poz_list.push({'top':row_y_pos_list[i-1], 'bottom':row_y_pos_list[i] })
         }
         var last_y = row_y_pos_list[row_y_pos_list.length -1]
-        row_poz_list.push({'start':last_y, 'end':last_y + MAX_ROW_MARGIN })
+        row_poz_list.push({'top':last_y, 'bottom':last_y + row_max_height })
     }
 
     console.log('row_poz_list  length: %d', row_poz_list.length)
+
+    for(var poz of row_poz_list){
+            console.log(" 找到的 y 坐标 用于划分行------ [%d   ---    %d] ", poz['top'], poz['bottom'])
+    }
     return  row_poz_list
 }
 

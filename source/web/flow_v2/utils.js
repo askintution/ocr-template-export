@@ -39,6 +39,21 @@ function find_block_by_id(child_id){
 
 
 /**
+根据 坐标  找到word 元素元素
+*/
+function find_block_by_id(child_id){
+
+   for(var i=0; i< vue.blockItemList.length; i++  ){
+
+        if ()
+        if (child_id ==vue.blockItemList[i]['id'] ){
+            return vue.blockItemList[i]
+        }
+   }
+}
+
+
+/**
 重新调整canvas 的大小
 */
 function reset_canvas(width, height){

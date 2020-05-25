@@ -332,14 +332,16 @@ function redraw_canvas(){
 /**
 滑动分割线， 找到适合分割表格的位置
 */
-function create_split_thItems_line(box){
+function create_split_thItems_line(box, row_max_height){
 
+    row_max_height = parseInt(row_max_height)
     line_height = box['bottom'] - box['top']
     line_width = box['right'] - box['left']
     line_top = box['top']
     line_left = box['left']
     col_num = parseInt(box['th_count'])
-//    console.log("     create_split_thItems_line  col_num: [%d]  ", col_num  )
+    console.log("     create_split_thItems_line  col_num: [%d]  row_max_height:  [%d]", col_num , row_max_height  )
+
     col_width = line_width / col_num
     col_item_y_poz_map = new Map()
     for(var i=0 ; i< col_num + 1; i++){
@@ -352,8 +354,8 @@ function create_split_thItems_line(box){
           id: i,
           draggable: true,
           fillStyle: '#6c1',
-          x: x, y: line_top + line_height *4 /2 ,
-          width: 2, height: line_height*4 ,
+          x: x, y: line_top + (line_height + row_max_height) /2 ,
+          width: 2, height: line_height + row_max_height ,
           restrictDragToAxis: 'x',
           dragstop: function(layer) {
 //           console.log(layer['x'] ,layer['id']  )
