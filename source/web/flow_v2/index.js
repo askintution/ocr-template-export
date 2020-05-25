@@ -79,9 +79,6 @@ function parse_data_by_page(page, margin_document_top){
     var blockList = new Array()
     var index = 0
 
-    //换页时， 清空现在选择的字段。
-//    clean_current_field()
-
     // 将所有'行'的元素取出来
     for (i =0 ; i< data['Blocks'].length ; i++){
         if(data['Blocks'][i]['Page'] == page  &&
@@ -109,7 +106,6 @@ function parse_data_by_page(page, margin_document_top){
 
     //计算旋转后坐标
     var blockCount = blockList.length
-//    blockCount = 20
     for(i =0 ; i<blockCount; i++){
        blockItem = create_block(blockList[i])
        block_item_list.push(blockItem)
@@ -197,8 +193,11 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 function is_display_block(blockItem){
     //LINE
     if (blockItem['raw_block_type'] == 'LINE'){
+//     && blockItem['child_list'].length>1
+//        console.log("-------------------------  ", blockItem['child_list'].length)
         return false
     }
+    return true
 }
 
 
@@ -253,20 +252,21 @@ function draw_block_inside(blockItem){
 
 function click_item(blockItem){
 
+    var selected = blockItem['selected']
+        console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
+                        blockItem['left'], blockItem['id'], blockItem['text'] )
+
+         console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
     if(blockItem['raw_block_type'] == 'LINE'){
         return
     }
+
     console.log("----------------vue.currentTableBlock['status']   ", vue.currentTableBlock['status'])
     if (vue.currentTableBlock['status'] !=0 ){
         show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
         return false;
     }
 
-    var selected = blockItem['selected']
-    console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
-                    blockItem['left'], blockItem['id'], blockItem['text'] )
-
-     console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
     if(selected == 0){
         if(add_block_to_current_table(blockItem)){
 //            console.log("------------ click_item  1")
@@ -293,11 +293,28 @@ function redraw_canvas(){
 
 
     console.log("---------------------------redraw_canvas-----------------------    ")
-     $('#myCanvas').clearCanvas()
+    $('#myCanvas').clearCanvas()
     for(i =0 ; i<vue.blockItemList.length; i++){
         draw_block_inside(vue.blockItemList[i] )
     }
+
+    draw_split_table_line()
+
+
 }
+
+function draw_split_table_line(){
+
+    if(vue.tableBlockList ==null || vue.tableBlockList.length ==0 ){
+        return ;
+    }
+
+
+//      vue.currentTableBlock['col_poz_list'] = col_poz_list
+//      vue.currentTableBlock['row_poz_list'] = row_poz_list
+
+}
+
 
 
 /**

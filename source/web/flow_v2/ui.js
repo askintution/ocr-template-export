@@ -42,22 +42,15 @@ Vue  对象的结构
 --tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
-    --item_width                    //int   用户点击选择表头元素的数量
-    --th_count                      // 实际表格列数， 用户自己填入， 用户生成分割线
-    --row_max_height                // 用户输入的行最大的可能高度， 辅助进行识别
+    --thItems[]                     //【用户输入】 模板的定位元素， 用户点击选择的Block  首位两端的就可以， 最少两个
+                                    // [ {left, right, top, bottom}, {left, right, top, bottom}]
+    --th_count                      //【用户输入】 【需要保存的内容】   实际表格列数， 用户自己填入， 用户生成分割线
+    --row_max_height                //【用户输入】 【需要保存的内容】   用户输入的行最大的可能高度， 辅助进行识别
+    --save_location_items           // 【需要保存的内容】
+
     --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
-    --th_x_poz_list
     --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
     --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
-    --thItems[]                     // 用户点击选择的列名称 ， 还会进行拆分 ， 生成新的new_thItems。
-      --blockItem{}   [.text, .multi_line：是否多行显示]
-    --new_thItems[]
-    --tableItems[] // 一个表头，可以在页面里面找到多个匹配的表格。
-      --rowList[]
-        --row[]
-          --td{}
-            --type
-            --value
 */
 
 
@@ -67,6 +60,7 @@ function get_data(url){
         return ;
     }
     vue.tableBlockList = new Array()
+    //TODO: 从本地数据库加载数据
     vue.currentTableBlock = {}
 
     $("#loading-icon").show()
@@ -76,10 +70,11 @@ function get_data(url){
         $("#loading-icon").hide()
 
     })
+
 }
 
 /**
-添加tableBlock  模板
+新加一种类型的 tableBlock模板
 */
 function add_table_block(){
     if (vue.tableBlockList.length >0 && vue.currentTableBlock['status'] !=2 ){
@@ -87,11 +82,12 @@ function add_table_block(){
         return false;
     }
 
-
     var tableBlock = {}
     tableBlock['id']= uuid(8, 16)
     tableBlock['thItems'] = new Array()
-    tableBlock['th_count'] = 0               //默认表格列数
+    tableBlock['save_location_items'] = new Array()
+
+    tableBlock['th_count'] = 0                      //默认表格列数
     tableBlock['row_max_height'] = 100
     tableBlock['status'] = 0
     vue.currentTableBlock = tableBlock
@@ -102,12 +98,11 @@ function add_table_block(){
 
 
 /**
-将页面元素添加到 表格中， 作为一列
+将页面元素添加到 表格中， 作为表格定位元素
 */
 function add_block_to_current_table(blockItem){
 
-
-    console.log("blockItem id: ", blockItem['id'])
+//    console.log("blockItem id: ", blockItem['id'])
     if( !has_current_table_block()){
             return false;
     }
@@ -120,8 +115,12 @@ function add_block_to_current_table(blockItem){
     blockItem['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
     blockItem['table_id']= vue.currentTableBlock['id']
     thItems.push(blockItem)
+
+    var save_location_items = copy_block_item(blockItem)
+    vue.currentTableBlock['save_location_items'].push(save_location_items)
+
     vue.currentTableBlock['th_count'] = thItems.length
-    console.log('add_block_to_current_table : ', JSON.stringify(blockItem))
+//    console.log('add_block_to_current_table : ', JSON.stringify(blockItem))
     vue.currentTableBlock['thItems'] =  thItems
     return true;
 }
@@ -136,6 +135,7 @@ function add_block_to_current_table(blockItem){
 */
 function delete_table_block(table_block_id){
 
+    vue.currentTableBlock = {}
     vue.tableBlockList = vue.tableBlockList.filter(function(item) {
         return item['id'] != table_block_id
     });
@@ -160,14 +160,10 @@ function create_table_split_th(){
     if( !has_current_table_block()){
         return ;
     }
-    if (vue.currentTableBlock['status'] ==2 ){
-        show_message("已经生成分割线， 如果需要重新生成， 请先选择'删除表格' ")
-        return
-    }
 
     var thItems = vue.currentTableBlock['thItems']
     if(thItems.length<2){
-        show_message("表格列数最少为2个")
+        show_message("定位元素 列数最少为2个")
         return ;
     }
     redraw_canvas()
@@ -208,27 +204,11 @@ function create_table_template(){
     var row_poz_list =  find_split_row_poz_list(col_poz_list[0])
 
     //step 3. 利用行列 进行拆分
+    vue.currentTableBlock['col_poz_list'] = col_poz_list
+    vue.currentTableBlock['row_poz_list'] = row_poz_list
+
     split_td_by_col_row(vue.currentTableBlock['id'], col_poz_list, row_poz_list)
     redraw_canvas()
-
-//    tableItems.push(tableItem)
-//
-//
-//
-//    // 一个页面里面会有多个该表头开始的表格, 使用 thItems 再找相同的表头
-//    var total_result_th_item_list = find_same_th_items_in_document(thItems)
-//    if (total_result_th_item_list !=null && total_result_th_item_list.length>0){
-//        for(var i=0; i<total_result_th_item_list.length; i++){
-//            var _thItems = total_result_th_item_list[i]
-//            var _tableItem = find_table_items_by_th_items(_thItems)
-//            tableItems.push(_tableItem)
-//        }
-//
-//    }
-//
-//
-//    vue.currentTableBlock['tableItems'] = tableItems
-//    redraw_canvas()
 
 }
 
@@ -254,67 +234,6 @@ function split_td_by_col_row(table_id, col_poz_list, row_poz_list){
     }
 }
 
-
-/**
-用用户选择的表头， 到文档里面找相同的表格。
-*/
-function find_same_th_items_in_document(thItems){
-
-    var start_x = 0
-    var end_x = thItems[1]['left']
-    var start_y = thItems[0]['bottom']
-
-
-    var column_poz_list = find_split_column_poz_list(thItems)
-
-    var first_th_item_block_list = new Array()
-    for (var i=0; i< vue.blockItemList.length; i++){
-        var blockItem = vue.blockItemList[i]
-        if( blockItem['top'] > start_y && blockItem['right']< end_x && thItems[0]['text'] == blockItem['text'] ){
-            first_th_item_block_list.push(blockItem)
-        }
-
-    }
-
-    if (first_th_item_block_list.length ==0 ){
-        return null;
-    }
-
-    var total_result_th_item_list = new Array()  // 所有的表头的元素列表
-    for(var j=0; j< first_th_item_block_list.length; j++){
-
-        var temp_thItems = new Array()   //一个表头的元素列表
-        var blockItem = first_th_item_block_list[j]
-
-        var y_start = blockItem['top'] - blockItem['height']
-        var y_end =  blockItem['bottom'] + blockItem['height']
-
-
-        for (var z=0; z<thItems.length; z++){
-            var x_boundary = find_td_item_x_boundary(column_poz_list, z)
-            for (var i=0; i< vue.blockItemList.length; i++){
-                    var blockItem = vue.blockItemList[i]
-
-                    if(blockItem['y'] > y_start && blockItem['y']< y_end &&
-                       blockItem['x']> x_boundary['left'] &&
-                       blockItem['x']< x_boundary['right'] &&
-                       blockItem['text'] == thItems[z]['text']){
-
-                           blockItem['multi_line'] = thItems[z]['multi_line']
-                           temp_thItems.push(blockItem)
-                           console.log("find same td item " , blockItem['text'])
-                    }
-             }
-        }
-        if(temp_thItems.length == thItems.length){
-            total_result_th_item_list.push(temp_thItems)
-        }
-    }//end for
-
-    return total_result_th_item_list;
-
-
-}
 
 /**
  通过分割线找到表头元素

@@ -10,7 +10,6 @@ function find_parent_block_id_by_child(child_blockItem){
    for(var i=0; i< vue.blockItemList.length; i++  ){
         parent_blockItem = vue.blockItemList[i]
         if(parent_blockItem['raw_block_type'] != "LINE" ){
-
             continue
         }
 
@@ -23,6 +22,9 @@ function find_parent_block_id_by_child(child_blockItem){
             }
         }
    }
+
+
+
 }
 
 /**
@@ -51,13 +53,6 @@ function merge_td_text_by_box_poz(table_id, box){
         }
         if ( blockItem['x'] > box['left'] && blockItem['x']<= box['right']
            &&  blockItem['y']> box['top'] && blockItem['y'] <= box['bottom']){
-
-            var parent_block = find_block_by_id(blockItem['parent_block_id'])
-            if(parent_block['is_split']== false){
-                parent_block['is_split'] = true
-                parent_block['table_id'] = table_id
-            }
-
             td_text +=  ' '+ blockItem['text']
 
         }
@@ -265,4 +260,21 @@ function split_function(id){
     }
     blockItem['is_split'] = !blockItem['is_split']
     redraw_canvas()
+}
+
+
+/**
+保存定位元素
+*/
+function copy_block_item(block_item){
+
+    var new_block_item = {}
+    new_block_item['left'] = block_item['left']
+    new_block_item['id'] = block_item['id']
+    new_block_item['right'] = block_item['right']
+    new_block_item['top'] = block_item['top']
+    new_block_item['bottom'] = block_item['bottom']
+    new_block_item['text'] = block_item['text']
+
+    return new_block_item
 }
