@@ -39,17 +39,21 @@ function find_block_by_id(child_id){
 
 
 /**
-根据 坐标  找到word 元素元素
+根据 坐标  找到word 元素, 并且合并文本内容
 */
-function find_block_by_id(child_id){
+function merge_td_text_by_box_poz(box){
 
-   for(var i=0; i< vue.blockItemList.length; i++  ){
-
-        if ()
-        if (child_id ==vue.blockItemList[i]['id'] ){
-            return vue.blockItemList[i]
+   var td_text = ''
+   for(var blockItem of vue.blockItemList){
+        if (blockItem['raw_block_type'] =='LINE'){
+            continue
+        }
+        if ( blockItem['x'] > box['left'] && blockItem['x']<= box['right']
+           &&  blockItem['y']> box['top'] && blockItem['y'] <= box['bottom']){
+            td_text +=  ' '+ blockItem['text']
         }
    }
+   return td_text
 }
 
 

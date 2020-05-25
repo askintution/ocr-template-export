@@ -199,10 +199,6 @@ function create_table_template(){
     if( !has_current_table_block()){
         return ;
     }
-    if (vue.currentTableBlock['status'] !=1 ){
-        show_message("请先 '生成表头'")
-        return false;
-    }
     var thItems = vue.currentTableBlock['thItems']
     if(thItems.length<2){
         show_message("表格列数最少为2个")
@@ -255,18 +251,18 @@ function create_table_template(){
 function split_td_by_col_row(new_th_items, row_poz_list){
 
 
-    for(var row of row_poz_list){
+    for(var i=0; i<row_poz_list.length; i++ ){
+        var row = row_poz_list[i]
 
-        for(var col of new_th_items){
+        for(var j=0; j< new_th_items.length; j++ ){
+            var col = new_th_items[j]
 
-            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
-
+//            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
+            var box = {'left': col['left'], 'right': col['right'] ,
+                        'top': row['top'], 'bottom': row['bottom'] }
+            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, merge_td_text_by_box_poz(box) )
         }
-
-
     }
-
-
 }
 
 
