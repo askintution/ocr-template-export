@@ -210,17 +210,14 @@ function create_table_template(){
 
     //step 1.  找到表头元素 列划分
     var tableItems = new Array()
-    var new_th_items = find_table_items_by_th_items(thItems)
-
+    var col_poz_list = find_table_items_by_th_items(thItems)
 
     //step 2.  找到行划分  TODO:  可以让用户自己选按照哪一列划分行， 目前选第一列， 因为一般情况下第一列不为空
-    var row_poz_list =  find_split_row_poz_list(new_th_items[0])
-
+    var row_poz_list =  find_split_row_poz_list(col_poz_list[0])
 
     //step 3. 利用行列 进行拆分
-
-    split_td_by_col_row(new_th_items, row_poz_list)
-
+    split_td_by_col_row(vue.currentTableBlock['id'], col_poz_list, row_poz_list)
+    redraw_canvas()
 
 //    tableItems.push(tableItem)
 //
@@ -248,19 +245,19 @@ function create_table_template(){
 根据行和列的值划分表格
 */
 
-function split_td_by_col_row(new_th_items, row_poz_list){
+function split_td_by_col_row(table_id, col_poz_list, row_poz_list){
 
 
     for(var i=0; i<row_poz_list.length; i++ ){
         var row = row_poz_list[i]
 
-        for(var j=0; j< new_th_items.length; j++ ){
-            var col = new_th_items[j]
+        for(var j=0; j< col_poz_list.length; j++ ){
+            var col = col_poz_list[j]
 
 //            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
             var box = {'left': col['left'], 'right': col['right'] ,
                         'top': row['top'], 'bottom': row['bottom'] }
-            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, merge_td_text_by_box_poz(box) )
+            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, merge_td_text_by_box_poz(table_id, box) )
         }
     }
 }
@@ -449,8 +446,8 @@ function find_split_column_poz_list(thItems){
 function find_split_row_poz_list(blockItem){
 
     var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
-    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
-    blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
+//    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
+//    blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
 
     var last_item_y = blockItem['bottom']
     var row_y_pos_list = new Array()
@@ -479,8 +476,8 @@ function find_split_row_poz_list(blockItem){
 //                console.log("###### ", tempBlockItem['text'], last_item_y)
                 continue;
             }
-            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
-                        tempBlockItem['left'], tempBlockItem['right'])
+//            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
+//                        tempBlockItem['left'], tempBlockItem['right'])
 
             last_item_y = tempBlockItem['bottom']
             row_y_pos_list.push(tempBlockItem['top'])
@@ -488,9 +485,9 @@ function find_split_row_poz_list(blockItem){
 
     }//end for
 
-    for(var poz of row_y_pos_list){
-        console.log(" 找到的 y 坐标 用于划分行---------------- %d ", poz)
-    }
+//    for(var poz of row_y_pos_list){
+//        console.log(" 找到的 y 坐标 用于划分行---------------- %d ", poz)
+//    }
 
     var row_poz_list = new Array()
     if(row_y_pos_list.length ==0 ){
@@ -509,9 +506,9 @@ function find_split_row_poz_list(blockItem){
 
     console.log('row_poz_list  length: %d', row_poz_list.length)
 
-    for(var poz of row_poz_list){
-            console.log(" 找到的 y 坐标 用于划分行------ [%d   ---    %d] ", poz['top'], poz['bottom'])
-    }
+//    for(var poz of row_poz_list){
+//            console.log(" 找到的 y 坐标 用于划分行------ [%d   ---    %d] ", poz['top'], poz['bottom'])
+//    }
     return  row_poz_list
 }
 
@@ -529,21 +526,3 @@ function has_current_table_block(){
     return true
 }
 
-
-
-/**
-对一个LINE 元素进行拆分或者合并操作
-*/
-function split_function(id){
-
-    var blockItem = find_block_by_id(id)
-    if (blockItem['is_split'] == false){
-        vue.currentTableBlock['split_block_list'].push(blockItem['id'])
-    }else {
-        vue.currentTableBlock['split_block_list'].pop(blockItem['id'])
-    }
-    blockItem['is_split'] = !blockItem['is_split']
-    redraw_canvas()
-
-
-}

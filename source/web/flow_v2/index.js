@@ -212,11 +212,20 @@ function is_display_block(blockItem){
                 return false
             }
         }
+        if(blockItem['is_split']){
+            return false
+        }
+
         return true
     }
 
     if (blockItem['raw_block_type'] == 'WORD'){
         //WORD
+        var parent_block = find_block_by_id(blockItem['parent_block_id'])
+        if(parent_block['is_split']){
+            return true
+        }
+
         for (var i=0 ; i<current_split_block_list.length; i++  ){
            var current_split_block_id = current_split_block_list[i]
             //如果是LINE block， 已经切分了， 就不显示
@@ -227,6 +236,9 @@ function is_display_block(blockItem){
         }
         return false
     }
+
+
+
     return false
 }
 

@@ -28,10 +28,10 @@ function find_parent_block_id_by_child(child_blockItem){
 /**
 根据ID找到元素
 */
-function find_block_by_id(child_id){
+function find_block_by_id(block_id){
 
    for(var i=0; i< vue.blockItemList.length; i++  ){
-        if (child_id ==vue.blockItemList[i]['id'] ){
+        if (block_id ==vue.blockItemList[i]['id'] ){
             return vue.blockItemList[i]
         }
    }
@@ -39,9 +39,10 @@ function find_block_by_id(child_id){
 
 
 /**
-根据 坐标  找到word 元素, 并且合并文本内容
+根据 坐标  找到word 元素, 并且合并文本内容,
+并且将这些元素拆分
 */
-function merge_td_text_by_box_poz(box){
+function merge_td_text_by_box_poz(table_id, box){
 
    var td_text = ''
    for(var blockItem of vue.blockItemList){
@@ -50,7 +51,15 @@ function merge_td_text_by_box_poz(box){
         }
         if ( blockItem['x'] > box['left'] && blockItem['x']<= box['right']
            &&  blockItem['y']> box['top'] && blockItem['y'] <= box['bottom']){
+
+            var parent_block = find_block_by_id(blockItem['parent_block_id'])
+            if(parent_block['is_split']== false){
+                parent_block['is_split'] = true
+                parent_block['table_id'] = table_id
+            }
+
             td_text +=  ' '+ blockItem['text']
+
         }
    }
    return td_text
@@ -241,5 +250,19 @@ function sort_map_return_list(data_map){
 
     console.log('sort map : ', JSON.stringify(dataArray))
     return dataArray;
+}
 
+
+/**
+对一个LINE 元素进行拆分或者合并操作
+*/
+function split_function(id){
+    var blockItem = find_block_by_id(id)
+    if (blockItem['is_split'] == false){
+        vue.currentTableBlock['split_block_list'].push(blockItem['id'])
+    }else {
+        vue.currentTableBlock['split_block_list'].pop(blockItem['id'])
+    }
+    blockItem['is_split'] = !blockItem['is_split']
+    redraw_canvas()
 }
