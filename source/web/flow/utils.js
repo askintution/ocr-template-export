@@ -79,7 +79,6 @@ function find_max_width_block(blockList){
         var max_width_block = null
         max_width = 0.0
         for(i =0 ; i< blockList.length; i++){
-
                width =  blockList[i]['Geometry']['BoundingBox']['Width']
                if(width> max_width){
                 max_width = width

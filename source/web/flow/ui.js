@@ -8,6 +8,7 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 currentTableBlock:{},
+//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/list.json",
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -195,6 +196,12 @@ function create_table_template(){
         show_message("表格列数最少为2个")
         return ;
     }
+    if( vue.currentTableBlock['status'] != 1){
+
+        show_message("请先生成分割线")
+        return;
+    }
+
 
     vue.currentTableBlock['status'] =2
     thItems.sort(sort_block_by_x);

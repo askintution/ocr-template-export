@@ -26,6 +26,9 @@ function parse_data(data){
     //按照页数解析所有页面元素， 并且把它们拼接到一起
     for (count=0 ; count< pageCount; count++){
         result = parse_data_by_page(count+1 , margin_document_top)  // Demo 展示第一页
+        if(result == null){
+            continue
+        }
         _blockItemList = result['blockItemList']
 
         page_margin = result['page_margin']
@@ -79,7 +82,10 @@ function parse_data_by_page(page, margin_document_top){
             index++
         }
     }
+    if( blockList.length == 0){
 
+        return null;
+    }
 
     // 取出最长的元素， 找到旋转角度， 让它保持水平。
      var max_width_block = find_max_width_block(blockList)
