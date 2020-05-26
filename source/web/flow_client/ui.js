@@ -16,12 +16,9 @@ $(function(){
                     url = $("#json_url_input").val()
                     get_data(url)
                 },
-                save_template:function(){
-                    save_template()
-                },
-                delete_table_block:function(e){
-                    table_block_id = e.currentTarget.name
-                    delete_table_block(table_block_id)
+                load_template_by_name:function(e){
+                    template_name = e.currentTarget.name
+                    load_template_by_name(template_name)
                 }
              }
     })

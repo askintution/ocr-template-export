@@ -1,8 +1,5 @@
 var POST_URL = "https://7imr48wed1.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
 
-var CMD_SAVE_TEMPLATE = 'save_template'   // 保存模板的请求命令
-var CMD_GET_FIELD_LIST = 'get_field_list' //  获取一个模板所有的字段
-var CMD_GET_TEMPLATE_LIST = 'get_template_list'   //或者特定类型的模板列表
 var MIN_KEY_BLOCK_COUNT = 3 //一个模板最少的定位元素
 
 var page_width=960;  // 页面宽度
@@ -25,7 +22,6 @@ function parse_data(data){
         show_message("该文档 没有内容")
         return;
     }
-
 
     var margin_document_top = 0.0 // 累计文档高度
     var blockItemList =  new Array()  //保存所有元素的列表
@@ -64,7 +60,7 @@ function parse_data(data){
      for(i =0 ; i<blockItemList.length; i++){
             var _blockItem = blockItemList[i]
             zoom_layout_block(_blockItem, document_zoom_out_height)
-            find_parent_block_id_by_child(_blockItem)
+//            find_parent_block_id_by_child(_blockItem)
      }
     // 绘制元素
     redraw_canvas()
@@ -117,14 +113,10 @@ function parse_data_by_page(page, margin_document_top){
     for(i =0 ; i<block_item_list.length ; i++){
         var blockItem = block_item_list[i]
         re_arrange_position_block(blockItem, page_margin, margin_document_top)
-//        console.log(blockItem)
     }
 
     return {'blockItemList': block_item_list, 'page_margin':page_margin }
-
 }
-
-
 
 /**
 计算所有元素经过旋转以后的新坐标
@@ -182,8 +174,6 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
         poly['x'] = (poly['x'] -  page_left )*  page_margin['width_rate']
         poly['y'] = poly['y'] -  page_top +  margin_document_top
     }
-
-
 }
 
 
@@ -193,14 +183,10 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 function is_display_block(blockItem){
     //LINE
     if (blockItem['raw_block_type'] == 'LINE'){
-//     && blockItem['child_list'].length>1
-//        console.log("-------------------------  ", blockItem['child_list'].length)
         return false
     }
     return true
 }
-
-
 
 
 /**
@@ -213,14 +199,6 @@ function draw_block_inside(blockItem){
     }
 
      var strokeStyle = 'blue'
-     if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
-        strokeStyle="red";
-        clear_block_item_in_canvas(blockItem)
-     }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
-        strokeStyle="green";
-     }
-
-
 
 
     $('#myCanvas').drawRect({
@@ -250,12 +228,13 @@ function draw_block_inside(blockItem){
 
 }
 
+
+
 function click_item(blockItem){
 
-    console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
-                    blockItem['left'], blockItem['id'], blockItem['text'] )
-
-     console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
+    console.log('id=%s,  [x=%f, y=%f] [top=%f ,left=%f, bottom=%f, right=%f] [%s]  ',
+               blockItem['id'], blockItem['x'], blockItem['y'],blockItem['top'],
+               blockItem['left'],blockItem['bottom'],blockItem['right'], blockItem['text'] )
 
 }
 
@@ -263,23 +242,24 @@ function click_item(blockItem){
 重新绘制所有元素
 */
 function redraw_canvas(){
+    console.log("---------------------------redraw_canvas-----------------------    ")
+
     $('#myCanvas').remove(); // this is my <canvas> element
     $('#myCanvasParent').append('<canvas id="myCanvas" height="'+canvas_height+'" width="'+canvas_width+'" style="border:1px solid #000000;"></canvas>');
 
-
-    console.log("---------------------------redraw_canvas-----------------------    ")
     $('#myCanvas').clearCanvas()
     for(i =0 ; i<vue.blockItemList.length; i++){
         draw_block_inside(vue.blockItemList[i] )
     }
-
     draw_split_table_line()
 
 
 }
 
+/**
+画表格分割线
+*/
 function draw_split_table_line(){
-
 
     if(vue.tableBlockList ==null || vue.tableBlockList.length ==0 ){
         return ;
@@ -299,12 +279,14 @@ function draw_split_table_line(){
     }
 }
 
+/**
+画单独表格分割线
+*/
 function draw_single(col_poz_list, row_poz_list){
     var strokeWidth = 1
 
     if( col_poz_list == null || col_poz_list.length ==0
             || row_poz_list == null || row_poz_list.length ==0 ){
-
         return
     }
 
@@ -343,8 +325,6 @@ function draw_single(col_poz_list, row_poz_list){
 
         }
     }
-
-
 
     $('#myCanvas').drawLine({
       layer: true,

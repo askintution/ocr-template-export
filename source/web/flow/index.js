@@ -9,6 +9,9 @@ var page_width=960;  // 页面宽度
 var page_height=2000;  // 每一页，页面高度
 var matrix = [1,0,0,1];  //矩阵
 
+var canvas_width = page_width
+var canvas_height = page_height
+
 /**
 解析ajax 返回的数据
 **/
@@ -48,29 +51,26 @@ function parse_data(data){
 
 
     var document_zoom_out_height = page_height* document_page_height
+    canvas_width = page_width;
+    canvas_height = document_zoom_out_height;
     reset_canvas(page_width , document_zoom_out_height)
+
     console.log('Canvas size=[%f , %f]  document height %f ',
     page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
-     //对元素进行缩放
+
+    console.log("----blockItemList length:   ", vue.blockItemList.length)
+     //对元素进行缩放  如果是WORD 元素， 找到他们的父元素
      for(i =0 ; i<blockItemList.length; i++){
-            zoom_layout_block(blockItemList[i], document_zoom_out_height)
+            var _blockItem = blockItemList[i]
+            zoom_layout_block(_blockItem, document_zoom_out_height)
+            find_parent_block_id_by_child(_blockItem)
      }
     // 绘制元素
     redraw_canvas()
 
 
 }
-
-
-
-function reset_canvas(width, height){
-    var canvas=document.getElementById("myCanvas");
-    canvas.width=width
-    canvas.height=height
-
-}
-
 /**
 解析单页的数据
 **/
@@ -79,12 +79,10 @@ function parse_data_by_page(page, margin_document_top){
     var blockList = new Array()
     var index = 0
 
-    //换页时， 清空现在选择的字段。
-//    clean_current_field()
-
     // 将所有'行'的元素取出来
     for (i =0 ; i< data['Blocks'].length ; i++){
-        if(data['Blocks'][i]['Page'] == page  && data['Blocks'][i]['BlockType']=='LINE'){
+        if(data['Blocks'][i]['Page'] == page  &&
+            (data['Blocks'][i]['BlockType']=='LINE' || data['Blocks'][i]['BlockType']=='WORD' )){
             blockList[index] = data['Blocks'][i]
             index++
         }
@@ -98,7 +96,7 @@ function parse_data_by_page(page, margin_document_top){
 
     tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
     var theta = Math.atan(tan)
-    console.log("PageCount=%d,  PageNo=%d,  tan = %f,  theta =   %f   ", vue.pageCount , vue.pageNo, tan, theta)
+    console.log("PageCount=%d,   tan = %f,  theta =   %f   ", vue.pageCount , tan, theta)
 
     //反方向旋转Theta
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]
@@ -146,20 +144,27 @@ function create_block(block){
         newPloy['x'] =   newPloy['x']+ 0.5
         newPloy['y'] =   newPloy['y']+ 0.5
         polyArray.push(newPloy)
-
-
     }
 
 
 //    封装block 元素， 供页面显示
     var blockItem = {
         id:block['Id'],
+        raw_block_type: block['BlockType'],   // LINE or WORD
         newPoly:polyArray,
 //        polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
         blockType:0, //0 默认;  1 表头; 2 表格中的值
         text:block['Text']
         };
+
+     // 如果是行元素， 保存它的孩子元素 WORD
+     if(blockItem['raw_block_type'] == 'LINE' ){
+        blockItem['child_list'] = block['Relationships'][0]['Ids']
+        blockItem['child_count'] = block['Relationships'][0]['Ids'].length
+        blockItem['is_split'] = false  // 是否做拆分
+     }
+
 
     return blockItem
 }
@@ -181,130 +186,234 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 
 }
 
+
 /**
-把现有元素等比例放大， 占满空间
+判断一个元素是否显示
 */
-function zoom_layout_block(blockItem, document_zoom_out_height){
-
-    var polyArray  = blockItem['newPoly']
-    for (var i=0; i<polyArray.length; i++){
-        var poly = polyArray[i];
-        poly['x'] = parseInt(poly['x']  * page_width)
-        poly['y'] = parseInt(poly['y']  * page_height)
-
-
+function is_display_block(blockItem){
+    //LINE
+    if (blockItem['raw_block_type'] == 'LINE'){
+//     && blockItem['child_list'].length>1
+//        console.log("-------------------------  ", blockItem['child_list'].length)
+        return false
     }
-    blockItem['width'] = parseInt(polyArray[1]['x'] - polyArray[0]['x'])
-    blockItem['height'] = parseInt(polyArray[3]['y'] - polyArray[0]['y'])
-    blockItem['left'] = polyArray[0]['x']
-    blockItem['top'] = polyArray[0]['y']
-    blockItem['right'] = polyArray[1]['x']
-    blockItem['bottom'] = polyArray[2]['y']
-    blockItem['x'] = parseInt((polyArray[2]['x'] + polyArray[0]['x']) / 2.0)
-    blockItem['y'] = parseInt((polyArray[2]['y'] + polyArray[0]['y']) / 2.0)
+    return true
 }
+
+
+
 
 /**
 绘制block
 */
-function draw_block_inside(ctx, blockItem){
+function draw_block_inside(blockItem){
 
-    ctx.beginPath();
-    ctx.clearRect(blockItem['left']-3,blockItem['top']-3,blockItem['width']+6,blockItem['height']+6);
-    if(blockItem['selected'] == 1){ // 已经选择
-//    blockType
-        if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
-            ctx.strokeStyle="red";
-        }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
-            ctx.strokeStyle="green";
-        }
-    }else {
-        ctx.strokeStyle="blue";
+    if( is_display_block(blockItem) == false ){
+        return
     }
 
-    var newPoly = blockItem.newPoly
-    ctx.font="10px Arial";
-    ctx.lineWidth="1";
-    ctx.rect(blockItem['left'],blockItem['top'],blockItem['width'],blockItem['height']);
+     var strokeStyle = 'blue'
+     if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
+        strokeStyle="red";
+        clear_block_item_in_canvas(blockItem)
+     }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
+        strokeStyle="green";
+     }
 
-    ctx.fillText(blockItem['text'],blockItem['left'] +3, blockItem['top']+blockItem['height']/2.0 +2);
-    ctx.stroke();
+
+
+
+    $('#myCanvas').drawRect({
+      layer: true,
+      strokeStyle: strokeStyle,
+      strokeWidth: 1,
+      x: blockItem['x'], y: blockItem['y'],
+      width: blockItem['width'],
+      height: blockItem['height']-5,
+      cornerRadius: 1,
+      autosave: true,
+      click: function() {
+            click_item(blockItem)
+        }
+    });
+
+
+   $('#myCanvas').drawText({
+     layer: true,
+     fillStyle: '#36c',
+     fontSize: '8pt',
+     text: blockItem['text'],
+     autosave: true,
+     x: blockItem['x'] - $('#myCanvas').measureText('myText').width / 2, y: blockItem['y'],
+     align: 'left',
+   });
 
 }
 
-function redraw_canvas(){
-     var c=document.getElementById("myCanvas");
-     var ctx=c.getContext("2d");
-     ctx.clearRect(0,0,c.width,c.height);
+function click_item(blockItem){
 
-        for(i =0 ; i<vue.blockItemList.length; i++){
-            draw_block_inside(ctx,vue.blockItemList[i] )
+    var selected = blockItem['selected']
+     console.log('id=%s,  [x=%f, y=%f] [top=%f ,left=%f, bottom=%f, right=%f] [%s]  ',
+                   blockItem['id'], blockItem['x'], blockItem['y'],blockItem['top'],
+                   blockItem['left'],blockItem['bottom'],blockItem['right'], blockItem['text'] )
+    if(blockItem['raw_block_type'] == 'LINE'){
+        return
+    }
+
+    console.log("----------------vue.currentTableBlock['status']   ", vue.currentTableBlock['status'])
+    if (vue.currentTableBlock['status'] !=0 ){
+        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
+        return false;
+    }
+
+    if(selected == 0){
+        if(add_block_to_current_table(blockItem)){
+//            console.log("------------ click_item  1")
+            blockItem['selected'] = 1
+            blockItem['blockType'] = 1
+//            draw_block_inside(blockItem)
+            redraw_canvas()
+        }else {
+//            console.log("------------ click_item  2")
         }
+
+    }else {
+//            console.log("------------ click_item  3")
+//            blockItem['selected'] = 0
+    }
 }
 
 /**
-找到最宽的元素， 用它来进行页面的旋转
+重新绘制所有元素
 */
-function find_max_width_block(blockList){
-        var max_width_block = null
-        max_width = 0.0
-        for(i =0 ; i< blockList.length; i++){
+function redraw_canvas(){
+    $('#myCanvas').remove(); // this is my <canvas> element
+    $('#myCanvasParent').append('<canvas id="myCanvas" height="'+canvas_height+'" width="'+canvas_width+'" style="border:1px solid #000000;"></canvas>');
 
-               width =  blockList[i]['Geometry']['BoundingBox']['Width']
-               if(width> max_width){
-                max_width = width
-                max_width_block = blockList[i]
-               }
+
+    console.log("---------------------------redraw_canvas-----------------------    ")
+    $('#myCanvas').clearCanvas()
+    for(i =0 ; i<vue.blockItemList.length; i++){
+        draw_block_inside(vue.blockItemList[i] )
+    }
+
+    draw_split_table_line()
+
+
+}
+
+function draw_split_table_line(){
+
+    if(vue.tableBlockList ==null || vue.tableBlockList.length ==0 ){
+        return ;
+    }
+
+
+    for( var tableBlock of vue.tableBlockList){
+
+
+        var col_poz_list = tableBlock['col_poz_list']
+        var row_poz_list = tableBlock['row_poz_list']
+
+        if( col_poz_list == null || col_poz_list.length ==0
+            || row_poz_list == null || row_poz_list.length ==0 ){
+
+            return
         }
-        return max_width_block;
+
+        var top = row_poz_list[0]['top']
+        var bottom = row_poz_list[row_poz_list.length-1]['bottom']
+
+
+        var left = col_poz_list[0]['left']
+        var right = col_poz_list[col_poz_list.length-1]['right']
+
+
+
+        for(var i=1; i<col_poz_list.length; i++ ){
+            $('#myCanvas').drawLine({
+                      strokeStyle: '#000',
+                      layer: true,
+                      strokeWidth: 1,
+                      strokeDash: [5],
+                      strokeDashOffset: 0,
+                      x1: col_poz_list[i]['left'], y1: top,
+                      x2: col_poz_list[i]['left'], y2: bottom,
+                    });
+
+        }
+
+        if(row_poz_list.length>2){
+            for(var j=1; j< row_poz_list.length; j++){
+                $('#myCanvas').drawLine({
+                      strokeStyle: '#000',
+                      layer: true,
+                      strokeWidth: 1,
+                      strokeDash: [5],
+                      strokeDashOffset: 0,
+                      x1: left, y1: row_poz_list[j]['top'],
+                      x2: right, y2: row_poz_list[j]['top'],
+                    });
+
+            }
+        }
+
+
+
+        $('#myCanvas').drawLine({
+          strokeStyle: '#000',
+          layer: true,
+          strokeWidth: 1,
+          strokeDash: [5],
+          strokeDashOffset: 0,
+          x1: left, y1: top,
+          x2: left, y2: bottom,
+          x3: right, y3: bottom,
+          x4: right, y4: top,
+          x5: left, y5: top
+        });
+
+    }
+
 }
 
 
+
 /**
-找到每一页空白的地方， 去除掉， 防止有偏移
-**/
-function init_page_margin_block(blockItemList){
-        var min_top_block = null
-        var page_top = 1
-        var page_bottom = 0.0
-        var page_left = 1
-        var page_right = 0.0
+滑动分割线， 找到适合分割表格的位置
+*/
+function create_split_thItems_line(box, row_max_height){
 
-        for(i =0 ; i< blockItemList.length; i++){
-               var top =  blockItemList[i]['newPoly'][0]['y']
-               if(top<page_top){
-                    page_top = top
-               }
-               var left =  blockItemList[i]['newPoly'][0]['x']
-               if(left<page_left){
-                  page_left = left
-               }
+    row_max_height = parseInt(row_max_height)
+    line_height = box['bottom'] - box['top']
+    line_width = box['right'] - box['left']
+    line_top = box['top']
+    line_left = box['left']
+    col_num = parseInt(box['th_count'])
+    console.log("     create_split_thItems_line  col_num: [%d]  row_max_height:  [%d]", col_num , row_max_height  )
 
-               var bottom =  blockItemList[i]['newPoly'][2]['y']
-               if(bottom > page_bottom){
-                   page_bottom = bottom
-               }
-
-               var right =  blockItemList[i]['newPoly'][2]['x']
-               if(right > page_right){
-                   page_right = right
-               }
-
-        }
+    col_width = line_width / col_num
+    col_item_y_poz_map = new Map()
+    for(var i=0 ; i< col_num + 1; i++){
+        x = col_width * i + line_left
+        col_item_y_poz_map.set(i, parseInt(x))
 
 
-        var page_margin ={'top':0, 'bottom':1, 'left':0, 'right':'1'}
-        page_margin['top'] = page_top;
-        page_margin['bottom'] = page_bottom;
-        page_margin['left'] = page_left;
-        page_margin['right'] = page_right;
-        page_margin['height'] = page_bottom - page_top;
+         $('#myCanvas').drawRect({
+          layer: true,
+          id: i,
+          draggable: true,
+          fillStyle: '#6c1',
+          x: x, y: line_top + (line_height + row_max_height) /2 ,
+          width: 2, height: line_height + row_max_height ,
+          restrictDragToAxis: 'x',
+          dragstop: function(layer) {
+//           console.log(layer['x'] ,layer['id']  )
+           col_item_y_poz_map.set(layer['id'], parseInt(layer['x']))
+           vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
 
-
-        page_margin['height_rate'] = 1.0/(page_bottom - page_top);
-        page_margin['width_rate'] =  1.0/(page_right - page_left)  ;
-
-        console.log("page_margin",  JSON.stringify(page_margin))
-        return page_margin;
-
+          }
+        });
+    }
+    vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
 }

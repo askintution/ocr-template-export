@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="./index.js"></script>
+    <script src="../jcanvas.min.js"></script>
 </head>
 <body>
 
@@ -64,17 +64,19 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-7" class="overflow-auto"  >
+        <div class="col-md-8" class="overflow-auto" id="myCanvasParent" >
             <canvas id="myCanvas" width="960" height="1200"
                   style="border:1px solid #000000;">
         </canvas>
         </div>
 
         <!-- Right Start -->
-        <div class="col-md-5">
+        <div class="col-md-4">
 
             <div>
-                <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加表格</button>
+                <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加表格模板</button>
+                <input type="text" id="template_name_id" style="font-size:12px" class="col-sm-4"   placeholder="输入模板名称">
+                <button type="button" class="btn btn-primary" v-on:click="save_template()"> 保存模板</button>
 <!--                <button type="button" class="btn btn-primary" v-on:click="add_field()">添加字段</button>-->
             </div>
 
@@ -82,24 +84,22 @@
             <div  class="jumbotron" style="margin-top:20px;padding-top:30px;padding-bottom:20px" v-for="tableBlock of tableBlockList" >
 
                 <h6>Table <span v-text="tableBlock.id"></span></h6>
-                <ul>
-                    <li><small>点击选择要选取的列</small></li>
-                    <li><small>确认选择的元素是表格的表头， 并且在同一水平线上</small></li>
-                </ul>
+<!--                <ul>-->
+<!--                    <li><small>点击选择要选取的列</small></li>-->
+<!--                    <li><small>确认选择的元素是表格的表头， 并且在同一水平线上</small></li>-->
+<!--                    <li><small>最表头元素进行拆分</small></li>-->
+<!--                    <li><small>选择最大行高， 包括表头高度和行的最大高度的和</small></li>-->
+<!--                </ul>-->
                 <div  >
                     <table width="60%" style="font-size:13px;">
                         <tr>
                             <th width="10%"> Id</th>
-                            <th width="40%">名称</th>
-                            <th width="10%">多行</th>
-                            <th width="15%">操作</th>
+                            <th width="60%">定位元素</th>
                         </tr>
 
                         <tr v-for="(thItem, index) of tableBlock.thItems" >
                             <td><span  v-text="index + 1" /></td>
-                            <td><span  v-text="thItem.text" /></td>
-                            <td><input   type="checkbox"  v-model="thItem.multi_line" /></td>
-                            <td><a href="#" >删除</a></td>
+                            <td><span    v-text="thItem.text" /></td>
 
                         </tr>
 
@@ -109,9 +109,21 @@
 
                 </div>
 
-                <div style="margin-top:10px">
+                <div class="input-group mb-3" style="margin-top:10px;width:400px">
+                    <label style="margin:5px;"><small>最大行高: </small></label>
+                    <input type="number"  v-model="tableBlock.row_max_height"
+                           οninput="value=value.replace(/[^\d]/g,'')" class="form-control" placeholder="最大行高" >
+                    <label style="margin:5px;"><small>表格列数: </small></label>
+                    <input type="number"  v-model="tableBlock.th_count"
+                           οninput="value=value.replace(/[^\d]/g,'')" class="form-control" placeholder="表格列数" >
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" v-on:click="create_table_split_th()" >生成分割线</button>
+                    </div>
+                </div>
+                <div style="margin-top:5px">
+
                     <button type="button" class="btn btn-primary"  v-on:click="create_table_template()" >
-                        创建表格 <span class="badge badge-light"  v-text="tableBlock.thItems.length"></span>
+                        创建表格 </span>
                     </button>
                     <button type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
                             v-bind:name="tableBlock.id" >删除表格</button>
@@ -145,7 +157,9 @@
 
 
 
+            <p>
 
+            </p>
 
         </div>
 
@@ -173,11 +187,13 @@
         <!-- Right End -->
     </div>
 
+
 </div>
 
 </body>
 <script src="./ui.js"></script>
 <script src="./index.js"></script>
+<script src="./utils.js"></script>
 <script src="../util.js"></script>
 <!--<script source="./network.js"></script>-->
 

@@ -340,11 +340,9 @@ function save_template(){
 
     localStorage.setItem(template_name, JSON.stringify(save_table_block_list));
 
-    save_template_str = localStorage.getItem(template_name)
+//    save_template_str = localStorage.getItem(template_name)
+//    var obj = JSON.parse(save_template_str);
 
-    var obj = JSON.parse(save_template_str);
-
-    console.log("***********   ", JSON.stringify(obj))
 
     var  template_list = localStorage.getItem(LOCAL_SAVE_NAME_TEMPLATE_LIST)
 
