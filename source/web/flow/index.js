@@ -92,9 +92,7 @@ function parse_data_by_page(page, margin_document_top){
     }
 
     // 取出最长的元素， 找到旋转角度， 让它保持水平。
-     console.log("blockList ------------          ", blockList.length)
      var max_width_block = find_max_width_block(blockList)
-     console.log("----------------  ", JSON.stringify(max_width_block) )
      pointA = max_width_block['Geometry']['Polygon'][0]
      pointB = max_width_block['Geometry']['Polygon'][1]
 
@@ -306,6 +304,9 @@ function redraw_canvas(){
 
 }
 
+/**
+画出表格的分割线
+*/
 function draw_split_table_line(){
 
     if(vue.tableBlockList ==null || vue.tableBlockList.length ==0 ){
@@ -361,8 +362,6 @@ function draw_split_table_line(){
 
             }
         }
-
-
 
         $('#myCanvas').drawLine({
           strokeStyle: '#000',

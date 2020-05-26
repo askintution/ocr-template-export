@@ -82,7 +82,9 @@
 
             <div  class="jumbotron" style="margin-top:20px;padding-top:30px;padding-bottom:20px" v-for="tableBlock of tableBlockList" >
 
-                <span>Table <span v-text="tableBlock.id"  ></span></span>
+                <!--  横向表格 开始-->
+                <template  v-if="tableBlock.table_type==0">
+                <span>横向表格</span>  <small v-text="tableBlock.id"  ></small>
                 <button style="margin-left:175px;margin-bottom:5px" type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
                         v-bind:name="tableBlock.id" >删除表格</button>
 
@@ -121,6 +123,50 @@
                         <button type="submit" class="btn btn-primary mb-2"  v-on:click="create_table_template()"  >创建表格</button>
                     </div>
                 </div>
+
+                </template>
+                <!--  横向表格 结束-->
+
+
+
+                <!--  纵向表格开始-->
+                <template  v-if="tableBlock.table_type==1">
+                    <span >纵向表格</span>  <small v-text="tableBlock.id"  ></small>
+                    <button style="margin-left:175px;margin-bottom:5px" type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
+                            v-bind:name="tableBlock.id" >删除表格</button>
+
+                    <div class="form-row align-items-center">
+                        <div class="col-auto" style="width:300px">
+                            <div class="input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">末行行高</div>
+                                </div>
+                                <input type="number" class="form-control"   v-model="tableBlock.row_max_height"  placeholder="末行行高">
+                            </div>
+                        </div>
+
+                        <div class="col-auto">
+                            <button type="submit" οninput="value=value.replace(/[^\d]/g,'')"  class="btn btn-primary mb-2"
+                                    v-on:click="create_vertical_table_split_th()" >生成分割线</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row align-items-center">
+                        <div class="col-auto" style="width:300px">
+                            <div class="input-group mb-1">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">表格名称</div>
+                                </div>
+                                <input type="text" class="form-control"  v-model="tableBlock.table_name"   placeholder="表格名称">
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary mb-2"  v-on:click="create_vertical_table_template()"  >创建表格</button>
+                        </div>
+                    </div>
+
+                </template>
+                <!--  纵向表格 结束-->
 
             </div>
 
@@ -173,6 +219,7 @@
 <script src="./ui.js"></script>
 <script src="./index.js"></script>
 <script src="./utils.js"></script>
+<script src="./vertical.js"></script>
 <script src="../util.js"></script>
 <!--<script source="./network.js"></script>-->
 

@@ -1,4 +1,5 @@
 var vue ;
+var table_item_index = 0
 $(function(){
 
     vue = new Vue({
@@ -21,12 +22,24 @@ $(function(){
                 add_table_block:function(){
                     add_table_block()
                 },
+                add_vertical_table_block:function(){
+                    add_vertical_table_block()
+                },
+
                 create_table_split_th:function(){
                     create_table_split_th()
                 },
+                create_vertical_table_template:function(){
+                    create_vertical_table_template()
+                },
+
                 create_table_template:function(){
                     create_table_template()
                 },
+                create_vertical_table_split_th:function(){
+                    create_vertical_table_split_th()
+                },
+
                 save_template:function(){
                     save_template()
                 },
@@ -66,7 +79,6 @@ function get_data(url){
         return ;
     }
     vue.tableBlockList = new Array()
-    //TODO: 从本地数据库加载数据
     vue.currentTableBlock = {}
 
     $("#loading-icon").show()
@@ -93,13 +105,15 @@ function add_table_block(){
     tableBlock['thItems'] = new Array()
 
     tableBlock['save_location_items'] = new Array()
-    tableBlock['table_type'] = 0
-    tableBlock['table_name'] = 'tb_name_0'
+    tableBlock['table_type'] = 0    //0 横向  1: 纵向
+    tableBlock['table_name'] = 'tb_name_'+table_item_index
     tableBlock['th_count'] = 0                      //默认表格列数
-    tableBlock['row_max_height'] = 100
+    tableBlock['row_max_height'] = 60
     tableBlock['status'] = 0
     vue.currentTableBlock = tableBlock
     vue.tableBlockList.push(tableBlock)
+
+    table_item_index += 1
 }
 
 
@@ -128,7 +142,6 @@ function add_block_to_current_table(blockItem){
     vue.currentTableBlock['save_location_items'].push(save_location_items)
 
     vue.currentTableBlock['th_count'] = thItems.length
-//    console.log('add_block_to_current_table : ', JSON.stringify(blockItem))
     vue.currentTableBlock['thItems'] =  thItems
     return true;
 }
