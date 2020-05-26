@@ -8,7 +8,7 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 templateList:[],
-                current_template_name: '',
+                current_template_name: 'test001',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -41,6 +41,7 @@ Vue  对象的结构
     --total_poz_list
         --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
         --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
+        --table_row_list                // 表格的文本内容
 */
 
 
@@ -84,16 +85,17 @@ function create_table_template(thItems, th_x_poz_list , row_max_height){
 
     console.log(th_x_poz_list)
 
-    console.log("----------------------")
     //step 1.  找到表头元素 列划分
     var tableItems = new Array()
     var col_poz_list = find_table_items_by_th_items(thItems, th_x_poz_list)
 
     //step 2.  找到行划分
     var row_poz_list =  find_split_row_poz_list(col_poz_list[0], row_max_height)
-    var total_poz = {'row_poz_list': row_poz_list, 'col_poz_list':col_poz_list }
-    split_td_by_col_row( col_poz_list, row_poz_list)
-    return total_poz
+
+    var table_row_list = split_td_by_col_row( col_poz_list, row_poz_list)
+
+    console.log("********** ", table_row_list)
+    return {'row_poz_list': row_poz_list, 'col_poz_list':col_poz_list, 'table_row_list': table_row_list }
 
 
 }
@@ -106,18 +108,26 @@ function create_table_template(thItems, th_x_poz_list , row_max_height){
 function split_td_by_col_row( col_poz_list, row_poz_list){
 
 
+    var table_row_list = []
     for(var i=0; i<row_poz_list.length; i++ ){
         var row = row_poz_list[i]
-
+        var table_col_list = []
         for(var j=0; j< col_poz_list.length; j++ ){
             var col = col_poz_list[j]
 
             console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
             var box = {'left': col['left'], 'right': col['right'] ,
                         'top': row['top'], 'bottom': row['bottom'] }
-            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, merge_td_text_by_box_poz(box) )
+
+            var text = merge_td_text_by_box_poz(box)
+            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, text )
+            table_col_list.push(text)
         }
+
+        table_row_list.push(table_col_list)
     }
+
+    return table_row_list
 }
 
 

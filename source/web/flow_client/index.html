@@ -64,14 +64,14 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-8" class="overflow-auto" id="myCanvasParent" >
+        <div class="col-md-7" class="overflow-auto" id="myCanvasParent" >
             <canvas id="myCanvas" width="960" height="1200"
                   style="border:1px solid #000000;">
         </canvas>
         </div>
 
         <!-- Right Start -->
-        <div class="col-md-4" style="background:gray">
+        <div class="col-md-5"  >
 
 
             <select class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref"  v-model="current_template_name"  @change='select_template_display' >
@@ -79,6 +79,37 @@
                 <option v-for='item in templateList' v-text="item"></option>
 
             </select>
+
+
+            <div v-for="tableBlock of tableBlockList"   class="shadow-sm p-3 mb-3 bg-white rounded">
+                <h4>Table Name: <span v-text="tableBlock.table_name"></span></h4>
+
+                <div v-for="(poz_list, table_index) of tableBlock.total_poz_list" >
+
+                    <span>Index: </span><span v-text="table_index"></span>
+
+
+                    <table class="table-dark table-bordered">
+                        <tr >
+                            <td v-for="(table_row, td_index) of poz_list.table_row_list[0]">
+                                <small v-text="td_index+1"></small>
+
+                            </td>
+                        </tr>
+                        <tr v-for="table_row of poz_list.table_row_list">
+                            <td v-for=" table_td of table_row">
+<!--                              <input v-model="table_td" />-->
+                                <small v-text="table_td"></small>
+
+                            </td>
+
+                        </tr>
+
+                    </table>
+
+                </div>
+
+            </div>
 
 
         </div>
