@@ -289,7 +289,9 @@ function load_data_from_local(template_name){
         var total_poz_list = []
 
         for (var th_item of total_th_item_list){
-            total_poz_list.push(create_table_template(th_item, tableBlock['th_x_poz_list'], tableBlock['row_max_height']))
+
+            var new_th_x_poz_list = correct_x_error_range(save_location_items[0]['left'] , th_item[0]['left']  , tableBlock['th_x_poz_list'])
+            total_poz_list.push(create_table_template(th_item, new_th_x_poz_list , tableBlock['row_max_height']))
         }
         tableBlock['total_poz_list'] = total_poz_list
         tableBlockList.push(tableBlock)
@@ -299,11 +301,24 @@ function load_data_from_local(template_name){
 }
 
 /**
-根据定位元素， 寻找thItem
-
-
+纠正横向的误差
 */
+function correct_x_error_range(save_x, real_x , th_x_poz_list){
 
+    var error = save_x - real_x
+
+    var new_th_x_poz_list = []
+    for( var poz of th_x_poz_list){
+        new_th_x_poz_list.push(poz - error)
+    }
+
+    return new_th_x_poz_list
+}
+
+
+/**
+根据定位元素， 寻找thItem
+*/
 function find_th_items_from_location_item(save_location_items){
 
         var error_range = 50  // 左右误差范围
