@@ -8,24 +8,13 @@ $(function(){
                 blockItemList:[], //当前页面解析的block元素
                 pageCount:0,
                 tableBlockList:[],
-                currentTableBlock:{},
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
              },methods:{
                 get_json:function(){
                     url = $("#json_url_input").val()
-                    //alert(url)
                     get_data(url)
-                },
-                add_table_block:function(){
-                    add_table_block()
-                },
-                create_table_split_th:function(){
-                    create_table_split_th()
-                },
-                create_table_template:function(){
-                    create_table_template()
                 },
                 save_template:function(){
                     save_template()
@@ -46,15 +35,14 @@ Vue  对象的结构
 --tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
-    --thItems[]                     //【用户输入】 模板的定位元素， 用户点击选择的Block  首位两端的就可以， 最少两个
-                                    // [ {left, right, top, bottom}, {left, right, top, bottom}]
+    --name
     --th_count                      //【用户输入】 【需要保存的内容】   实际表格列数， 用户自己填入， 用户生成分割线
     --row_max_height                //【用户输入】 【需要保存的内容】   用户输入的行最大的可能高度， 辅助进行识别
     --save_location_items           // 【需要保存的内容】
-
     --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
-    --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
-    --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
+    --total_poz_list
+        --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
+        --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
 */
 
 
@@ -64,7 +52,6 @@ function get_data(url){
         return ;
     }
     vue.tableBlockList = new Array()
-    //TODO: 从本地数据库加载数据
     vue.currentTableBlock = {}
 
     $("#loading-icon").show()
@@ -73,146 +60,35 @@ function get_data(url){
         vue.data_url = url
         $("#loading-icon").hide()
 
+        var template_name = 'test001'
+        load_data_from_local(template_name)
+        redraw_canvas()
+
     })
 
 }
-
-/**
-新加一种类型的 tableBlock模板
-*/
-function add_table_block(){
-    if (vue.tableBlockList.length >0 && vue.currentTableBlock['status'] !=2 ){
-        show_message("请先完成前一个表格[ "+vue.currentTableBlock['id']+" ]的制作")
-        return false;
-    }
-
-    var tableBlock = {}
-    tableBlock['id']= uuid(8, 16)
-    tableBlock['thItems'] = new Array()
-    tableBlock['save_location_items'] = new Array()
-
-    tableBlock['th_count'] = 0                      //默认表格列数
-    tableBlock['row_max_height'] = 100
-    tableBlock['status'] = 0
-    vue.currentTableBlock = tableBlock
-    vue.tableBlockList.push(tableBlock)
-}
-
-
-
-
-/**
-将页面元素添加到 表格中， 作为表格定位元素
-*/
-function add_block_to_current_table(blockItem){
-
-//    console.log("blockItem id: ", blockItem['id'])
-    if( !has_current_table_block()){
-            return false;
-    }
-    if (vue.currentTableBlock['status'] !=0 ){
-        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
-        return false;
-    }
-
-    var thItems = vue.currentTableBlock['thItems']
-    blockItem['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
-    blockItem['table_id']= vue.currentTableBlock['id']
-    thItems.push(blockItem)
-
-    var save_location_items = copy_block_item(blockItem)
-    vue.currentTableBlock['save_location_items'].push(save_location_items)
-
-    vue.currentTableBlock['th_count'] = thItems.length
-//    console.log('add_block_to_current_table : ', JSON.stringify(blockItem))
-    vue.currentTableBlock['thItems'] =  thItems
-    return true;
-}
-
-
-
-/**
-删除一个表格
-1. Vue 中删除
-2. UI 上删除
-3. 恢复初始状态
-*/
-function delete_table_block(table_block_id){
-
-    vue.currentTableBlock = {}
-    vue.tableBlockList = vue.tableBlockList.filter(function(item) {
-        return item['id'] != table_block_id
-    });
-
-
-    for(i =0 ; i<vue.blockItemList.length; i++){
-        var blockItem = vue.blockItemList[i]
-        if(blockItem['table_id'] == table_block_id){
-            blockItem['selected'] = 0
-            blockItem['blockType'] = 0 //1 表头; 2 表格中的值
-            blockItem['table_id']= ''
-        }
-    }
-    redraw_canvas()
-}
-
-
-/**
-生成划分表格列的 分割线
-*/
-function create_table_split_th(){
-    if( !has_current_table_block()){
-        return ;
-    }
-
-    var thItems = vue.currentTableBlock['thItems']
-    if(thItems.length<2){
-        show_message("定位元素 列数最少为2个")
-        return ;
-    }
-    redraw_canvas()
-    vue.currentTableBlock['status'] = 1
-
-    var box = get_thItems_box(thItems, vue.currentTableBlock['th_count'])
-
-    var row_max_height = vue.currentTableBlock['row_max_height']
-    create_split_thItems_line(box, row_max_height)
-
-}
-
 
 
 /**
 根据已经划分的表头  创建表格模板
 */
-function create_table_template(){
+function create_table_template(thItems, th_x_poz_list , row_max_height){
 
-
-    if( !has_current_table_block()){
-        return ;
-    }
-    var thItems = vue.currentTableBlock['thItems']
-    if(thItems.length<2){
-        show_message("表格列数最少为2个")
-        return ;
-    }
-
-    vue.currentTableBlock['status'] =2
     thItems.sort(sort_block_by_x);
 
+    console.log(th_x_poz_list)
+
+    console.log("----------------------")
     //step 1.  找到表头元素 列划分
     var tableItems = new Array()
-    var col_poz_list = find_table_items_by_th_items(thItems)
+    var col_poz_list = find_table_items_by_th_items(thItems, th_x_poz_list)
 
-    //step 2.  找到行划分  TODO:  可以让用户自己选按照哪一列划分行， 目前选第一列， 因为一般情况下第一列不为空
-    var row_poz_list =  find_split_row_poz_list(col_poz_list[0])
+    //step 2.  找到行划分
+    var row_poz_list =  find_split_row_poz_list(col_poz_list[0], row_max_height)
+    var total_poz = {'row_poz_list': row_poz_list, 'col_poz_list':col_poz_list }
+    split_td_by_col_row( col_poz_list, row_poz_list)
+    return total_poz
 
-    //step 3. 利用行列 进行拆分
-    vue.currentTableBlock['col_poz_list'] = col_poz_list
-    vue.currentTableBlock['row_poz_list'] = row_poz_list
-
-    split_td_by_col_row(vue.currentTableBlock['id'], col_poz_list, row_poz_list)
-    redraw_canvas()
 
 }
 
@@ -221,7 +97,7 @@ function create_table_template(){
 根据行和列的值划分表格
 */
 
-function split_td_by_col_row(table_id, col_poz_list, row_poz_list){
+function split_td_by_col_row( col_poz_list, row_poz_list){
 
 
     for(var i=0; i<row_poz_list.length; i++ ){
@@ -230,10 +106,10 @@ function split_td_by_col_row(table_id, col_poz_list, row_poz_list){
         for(var j=0; j< col_poz_list.length; j++ ){
             var col = col_poz_list[j]
 
-//            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
+            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
             var box = {'left': col['left'], 'right': col['right'] ,
                         'top': row['top'], 'bottom': row['bottom'] }
-            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, merge_td_text_by_box_poz(table_id, box) )
+            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, merge_td_text_by_box_poz(box) )
         }
     }
 }
@@ -242,8 +118,7 @@ function split_td_by_col_row(table_id, col_poz_list, row_poz_list){
 /**
  通过分割线找到表头元素
 */
-function  find_table_items_by_th_items (old_th_items){
-    var th_x_poz_list = vue.currentTableBlock['th_x_poz_list']
+function  find_table_items_by_th_items(old_th_items, th_x_poz_list){
 
     var single_item_list = []  //include word and line block
     for(var item of old_th_items){
@@ -264,7 +139,7 @@ function  find_table_items_by_th_items (old_th_items){
             new_item['text'] =  ''
 
             for (var j= item_index; j<single_item_list.length; j++  ){
-//                console.log(" th_x_poz_list: [%d] item_index  %d , j= [%d]   [%s]", i, item_index , j, single_item_list[j]['text'])
+                console.log(" th_x_poz_list: [%d] item_index  %d , j= [%d]   [%s]", i, item_index , j, single_item_list[j]['text'])
                 if (single_item_list[j]['x'] > th_x_poz_list[i-1]  &&
                     single_item_list[j]['x'] < th_x_poz_list[i] ){
                     new_item['text'] += ' '+ single_item_list[j]['text']
@@ -351,9 +226,9 @@ function find_split_column_poz_list(thItems){
 2: {start: 488, end: 543}
 3: {start: 543, end: 722}
 */
-function find_split_row_poz_list(blockItem){
+function find_split_row_poz_list(blockItem, row_max_height){
 
-    var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
+    var row_max_height = parseInt(row_max_height ) - blockItem['height']
 //    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
 //    blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
 

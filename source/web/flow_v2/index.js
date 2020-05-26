@@ -334,6 +334,7 @@ function draw_split_table_line(){
         for(var i=1; i<col_poz_list.length; i++ ){
             $('#myCanvas').drawLine({
                       strokeStyle: '#000',
+                      layer: true,
                       strokeWidth: 1,
                       strokeDash: [5],
                       strokeDashOffset: 0,
@@ -347,6 +348,7 @@ function draw_split_table_line(){
             for(var j=1; j< row_poz_list.length; j++){
                 $('#myCanvas').drawLine({
                       strokeStyle: '#000',
+                      layer: true,
                       strokeWidth: 1,
                       strokeDash: [5],
                       strokeDashOffset: 0,
@@ -361,6 +363,7 @@ function draw_split_table_line(){
 
         $('#myCanvas').drawLine({
           strokeStyle: '#000',
+          layer: true,
           strokeWidth: 1,
           strokeDash: [5],
           strokeDashOffset: 0,

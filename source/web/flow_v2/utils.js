@@ -326,11 +326,11 @@ function save_template(){
         }
         table_block_item['th_count'] =  tableBlock['th_count']
         table_block_item['row_max_height'] =  tableBlock['row_max_height']
-
         table_block_item['save_location_items'] =  tableBlock['save_location_items']
-
         table_block_item['col_poz_list'] =  tableBlock['col_poz_list']
         table_block_item['row_poz_list'] =  tableBlock['row_poz_list']
+
+        table_block_item['th_x_poz_list'] =  tableBlock['th_x_poz_list']
 
         save_table_block_list.push(table_block_item)
 

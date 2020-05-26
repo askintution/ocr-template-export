@@ -44,7 +44,7 @@ function find_block_by_id(block_id){
 根据 坐标  找到word 元素, 并且合并文本内容,
 并且将这些元素拆分
 */
-function merge_td_text_by_box_poz(table_id, box){
+function merge_td_text_by_box_poz(box){
 
    var td_text = ''
    for(var blockItem of vue.blockItemList){
@@ -227,6 +227,13 @@ function  get_thItems_box(thItems, th_count){
 function sort_block_by_x(a,b) {
     return a['x']-b['x'];
 }
+function sort_block_by_left(a,b) {
+    return a['left']-b['left'];
+}
+function sort_block_by_top(a,b) {
+    return a['top']-b['top'];
+}
+
 
 /**
 显示错误消息
@@ -247,22 +254,6 @@ function sort_map_return_list(data_map){
     return dataArray;
 }
 
-
-/**
-对一个LINE 元素进行拆分或者合并操作
-*/
-function split_function(id){
-    var blockItem = find_block_by_id(id)
-    if (blockItem['is_split'] == false){
-        vue.currentTableBlock['split_block_list'].push(blockItem['id'])
-    }else {
-        vue.currentTableBlock['split_block_list'].pop(blockItem['id'])
-    }
-    blockItem['is_split'] = !blockItem['is_split']
-    redraw_canvas()
-}
-
-
 /**
 保存定位元素
 */
@@ -280,3 +271,96 @@ function copy_block_item(block_item){
 }
 
 
+function load_data_from_local(template_name){
+
+    save_template_str = localStorage.getItem(template_name)
+    var save_tableBlockList = JSON.parse(save_template_str);
+
+    var tableBlockList = []
+    for (var tableBlock of save_tableBlockList){
+
+
+        save_location_items = tableBlock['save_location_items']
+        total_th_item_list = find_th_items_from_location_item(save_location_items)
+//        --total_poz_list
+//            --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
+//            --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
+
+        var total_poz_list = []
+
+        for (var th_item of total_th_item_list){
+            total_poz_list.push(create_table_template(th_item, tableBlock['th_x_poz_list'], tableBlock['row_max_height']))
+        }
+        tableBlock['total_poz_list'] = total_poz_list
+        tableBlockList.push(tableBlock)
+
+    }
+    vue.tableBlockList = tableBlockList
+}
+
+/**
+根据定位元素， 寻找thItem
+
+
+*/
+
+function find_th_items_from_location_item(save_location_items){
+
+        var error_range = 50  // 左右误差范围
+        save_location_items.sort(sort_block_by_left);
+
+        var total_col_list = []
+        for (var location_item of save_location_items){
+//            console.log("************   ", JSON.stringify(location_item))
+            var col_list = []
+            for(var _blockItem of  vue.blockItemList){
+
+                if(_blockItem['raw_block_type'] == "LINE" ){
+                            continue
+                }
+
+                if(_blockItem['text'] == location_item['text']
+                    && _blockItem['x'] > location_item['left'] - error_range
+                    && _blockItem['x'] < location_item['right'] + error_range){
+//                    console.log(" [%s] [%s]  [x=%d, y=%d] ", _blockItem['id'], _blockItem['text'] , _blockItem['x'] ,  _blockItem['y'] )
+                    col_list.push(_blockItem)
+                }
+            }
+            col_list.sort(sort_block_by_top)
+            total_col_list.push(col_list)
+        }
+
+
+        var total_th_item_list = []
+//        console.log("----------- 按照第一行寻找行")
+        // 按照第一行寻找行
+        for( var col_item of total_col_list[0]){
+
+            var th_item_list = []
+            var top = col_item['top'] - error_range
+            var bottom = col_item['bottom'] + error_range
+
+            th_item_list.push(col_item)
+            console.log("---- [%s] [%s]  [x=%d, y=%d] ", col_item['id'], col_item['text'] , col_item['x'] ,  col_item['y'] )
+
+
+            for(var j=1; j< total_col_list.length; j++ ){
+
+                for(var temp_col_item of total_col_list[j]){
+
+                    if(temp_col_item['y'] > top && temp_col_item['y']< bottom ){
+                        th_item_list.push(temp_col_item)
+                    }
+                }
+            }
+
+            if (th_item_list.length == save_location_items.length){
+                total_th_item_list.push(th_item_list)
+            }
+        }
+
+//        console.log("^^^^^^^^^^^^^^^^  ", total_th_item_list.length)
+        return total_th_item_list
+
+
+}

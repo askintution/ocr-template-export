@@ -252,36 +252,11 @@ function draw_block_inside(blockItem){
 
 function click_item(blockItem){
 
-    var selected = blockItem['selected']
-        console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
-                        blockItem['left'], blockItem['id'], blockItem['text'] )
+    console.log('tops %f ; left %f --->id [%s] [%s]  ', blockItem['top'],
+                    blockItem['left'], blockItem['id'], blockItem['text'] )
 
-         console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
-    if(blockItem['raw_block_type'] == 'LINE'){
-        return
-    }
+     console.log('id=%s,  [x=%f, y=%f]  ', blockItem['id'], blockItem['x'], blockItem['y'])
 
-    console.log("----------------vue.currentTableBlock['status']   ", vue.currentTableBlock['status'])
-    if (vue.currentTableBlock['status'] !=0 ){
-        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
-        return false;
-    }
-
-    if(selected == 0){
-        if(add_block_to_current_table(blockItem)){
-//            console.log("------------ click_item  1")
-            blockItem['selected'] = 1
-            blockItem['blockType'] = 1
-//            draw_block_inside(blockItem)
-            redraw_canvas()
-        }else {
-//            console.log("------------ click_item  2")
-        }
-
-    }else {
-//            console.log("------------ click_item  3")
-//            blockItem['selected'] = 0
-    }
 }
 
 /**
@@ -305,113 +280,82 @@ function redraw_canvas(){
 
 function draw_split_table_line(){
 
+
     if(vue.tableBlockList ==null || vue.tableBlockList.length ==0 ){
         return ;
     }
 
-
     for( var tableBlock of vue.tableBlockList){
-
-
-        var col_poz_list = tableBlock['col_poz_list']
-        var row_poz_list = tableBlock['row_poz_list']
-
-        if( col_poz_list == null || col_poz_list.length ==0
-            || row_poz_list == null || row_poz_list.length ==0 ){
-
-            return
+        var total_poz_list = tableBlock['total_poz_list']
+        if(total_poz_list == null || total_poz_list.length ==0 ){
+            return;
         }
 
-        var top = row_poz_list[0]['top']
-        var bottom = row_poz_list[row_poz_list.length-1]['bottom']
-
-
-        var left = col_poz_list[0]['left']
-        var right = col_poz_list[col_poz_list.length-1]['right']
-
-
-
-        for(var i=1; i<col_poz_list.length; i++ ){
-            $('#myCanvas').drawLine({
-                      strokeStyle: '#000',
-                      strokeWidth: 1,
-                      strokeDash: [5],
-                      strokeDashOffset: 0,
-                      x1: col_poz_list[i]['left'], y1: top,
-                      x2: col_poz_list[i]['left'], y2: bottom,
-                    });
-
+        for(var total_poz of total_poz_list){
+            var col_poz_list = total_poz['col_poz_list']
+            var row_poz_list = total_poz['row_poz_list']
+            draw_single(col_poz_list, row_poz_list)
         }
-
-        if(row_poz_list.length>2){
-            for(var j=1; j< row_poz_list.length; j++){
-                $('#myCanvas').drawLine({
-                      strokeStyle: '#000',
-                      strokeWidth: 1,
-                      strokeDash: [5],
-                      strokeDashOffset: 0,
-                      x1: left, y1: row_poz_list[j]['top'],
-                      x2: right, y2: row_poz_list[j]['top'],
-                    });
-
-            }
-        }
-
-
-
-        $('#myCanvas').drawLine({
-          strokeStyle: '#000',
-          strokeWidth: 1,
-          strokeDash: [5],
-          strokeDashOffset: 0,
-          x1: left, y1: top,
-          x2: left, y2: bottom,
-          x3: right, y3: bottom,
-          x4: right, y4: top,
-          x5: left, y5: top
-        });
-
     }
-
 }
 
+function draw_single(col_poz_list, row_poz_list){
+    var strokeWidth = 1
 
+    if( col_poz_list == null || col_poz_list.length ==0
+            || row_poz_list == null || row_poz_list.length ==0 ){
 
-/**
-滑动分割线， 找到适合分割表格的位置
-*/
-function create_split_thItems_line(box, row_max_height){
-
-    row_max_height = parseInt(row_max_height)
-    line_height = box['bottom'] - box['top']
-    line_width = box['right'] - box['left']
-    line_top = box['top']
-    line_left = box['left']
-    col_num = parseInt(box['th_count'])
-    console.log("     create_split_thItems_line  col_num: [%d]  row_max_height:  [%d]", col_num , row_max_height  )
-
-    col_width = line_width / col_num
-    col_item_y_poz_map = new Map()
-    for(var i=0 ; i< col_num + 1; i++){
-        x = col_width * i + line_left
-        col_item_y_poz_map.set(i, parseInt(x))
-
-
-         $('#myCanvas').drawRect({
-          layer: true,
-          id: i,
-          draggable: true,
-          fillStyle: '#6c1',
-          x: x, y: line_top + (line_height + row_max_height) /2 ,
-          width: 2, height: line_height + row_max_height ,
-          restrictDragToAxis: 'x',
-          dragstop: function(layer) {
-//           console.log(layer['x'] ,layer['id']  )
-           col_item_y_poz_map.set(layer['id'], parseInt(layer['x']))
-           vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
-
-          }
-        });
+        return
     }
-    vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
+
+    var top = row_poz_list[0]['top']
+    var bottom = row_poz_list[row_poz_list.length-1]['bottom']
+
+
+    var left = col_poz_list[0]['left']
+    var right = col_poz_list[col_poz_list.length-1]['right']
+
+
+    for(var i=1; i<col_poz_list.length; i++ ){
+        $('#myCanvas').drawLine({
+                  layer: true,
+                  strokeStyle: '#000',
+                  strokeWidth: strokeWidth,
+                  strokeDash: [5],
+                  strokeDashOffset: 0,
+                  x1: col_poz_list[i]['left'], y1: top,
+                  x2: col_poz_list[i]['left'], y2: bottom,
+                });
+
+    }
+
+    if(row_poz_list.length>2){
+        for(var j=1; j< row_poz_list.length; j++){
+            $('#myCanvas').drawLine({
+                  layer: true,
+                  strokeStyle: '#000',
+                  strokeWidth: strokeWidth,
+                  strokeDash: [5],
+                  strokeDashOffset: 0,
+                  x1: left, y1: row_poz_list[j]['top'],
+                  x2: right, y2: row_poz_list[j]['top'],
+                });
+
+        }
+    }
+
+
+
+    $('#myCanvas').drawLine({
+      layer: true,
+      strokeStyle: '#000',
+      strokeWidth: strokeWidth,
+      strokeDash: [5],
+      strokeDashOffset: 0,
+      x1: left, y1: top,
+      x2: left, y2: bottom,
+      x3: right, y3: bottom,
+      x4: right, y4: top,
+      x5: left, y5: top
+    });
 }
