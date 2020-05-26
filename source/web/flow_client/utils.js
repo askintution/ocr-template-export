@@ -162,7 +162,7 @@ function load_data_from_local(template_name){
     var tableBlockList = []
     for (var tableBlock of save_tableBlockList){
 
-
+        console.log("---- table_name ", tableBlock['table_name'])
         save_location_items = tableBlock['save_location_items']
         total_th_item_list = find_th_items_from_location_item(save_location_items)
 //        --total_poz_list

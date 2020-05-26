@@ -71,9 +71,14 @@
         </div>
 
         <!-- Right Start -->
-        <div class="col-md-4">
+        <div class="col-md-4" style="background:gray">
 
 
+            <select class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref"  v-model="current_template_name"  @change='select_template_display' >
+                <option selected value="">选择OCR模板</option>
+                <option v-for='item in templateList' v-text="item"></option>
+
+            </select>
 
 
         </div>

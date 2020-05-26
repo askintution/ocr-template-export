@@ -7,6 +7,8 @@ $(function(){
                 blockItemList:[], //当前页面解析的block元素
                 pageCount:0,
                 tableBlockList:[],
+                templateList:[],
+                current_template_name: '',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -15,10 +17,10 @@ $(function(){
                     url = $("#json_url_input").val()
                     get_data(url)
                 },
-                load_template_by_name:function(e){
-                    template_name = e.currentTarget.name
-                    load_template_by_name(template_name)
-                }
+                select_template_display:function(e){
+                    select_template_display()
+
+                },
              }
     })
     get_data(vue.data_url)
@@ -50,20 +52,28 @@ function get_data(url){
     vue.tableBlockList = new Array()
     vue.currentTableBlock = {}
 
+    vue.templateList = load_template_list()
+
     $("#loading-icon").show()
     $.getJSON(url, function (data) {
         parse_data(data)
         vue.data_url = url
         $("#loading-icon").hide()
 
-        var template_name = 'test002'
-        load_data_from_local(template_name)
-        redraw_canvas()
+        select_template_display()
 
     })
 
 }
 
+function select_template_display(){
+    if(vue.current_template_name == ''){
+        return
+    }
+    load_data_from_local(vue.current_template_name)
+    redraw_canvas()
+
+}
 
 /**
 根据已经划分的表头  创建表格模板

@@ -74,39 +74,17 @@
         <div class="col-md-4">
 
             <div>
-                <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加表格模板</button>
+                <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加 横向 表格模板</button>
+                <button type="button" class="btn btn-primary" v-on:click="add_vertical_table_block()">添加 纵向 表格模板</button>
 <!--                <button type="button" class="btn btn-primary" v-on:click="add_field()">添加字段</button>-->
             </div>
 
 
             <div  class="jumbotron" style="margin-top:20px;padding-top:30px;padding-bottom:20px" v-for="tableBlock of tableBlockList" >
 
-                <h6>Table <span v-text="tableBlock.id"></span></h6>
-<!--                <ul>-->
-<!--                    <li><small>点击选择要选取的列</small></li>-->
-<!--                    <li><small>确认选择的元素是表格的表头， 并且在同一水平线上</small></li>-->
-<!--                    <li><small>最表头元素进行拆分</small></li>-->
-<!--                    <li><small>选择最大行高， 包括表头高度和行的最大高度的和</small></li>-->
-<!--                </ul>-->
-                <div  >
-                    <table width="60%" style="font-size:13px;">
-                        <tr>
-                            <th width="10%"> Id</th>
-                            <th width="60%">定位元素</th>
-                        </tr>
-
-                        <tr v-for="(thItem, index) of tableBlock.thItems" >
-                            <td><span  v-text="index + 1" /></td>
-                            <td><span    v-text="thItem.text" /></td>
-
-                        </tr>
-
-
-                    </table>
-
-
-                </div>
-
+                <span>Table <span v-text="tableBlock.id"  ></span></span>
+                <button style="margin-left:175px;margin-bottom:5px" type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
+                        v-bind:name="tableBlock.id" >删除表格</button>
 
                 <div class="form-row align-items-center">
                     <div class="col-auto" style="width:150px">
@@ -130,55 +108,38 @@
                     </div>
                 </div>
 
-
                 <div class="form-row align-items-center">
                     <div class="col-auto" style="width:300px">
                         <div class="input-group mb-1">
                             <div class="input-group-prepend">
                                 <div class="input-group-text">表格名称</div>
                             </div>
-                            <input type="text" class="form-control"  placeholder="表格名称">
+                            <input type="text" class="form-control"  v-model="tableBlock.table_name"   placeholder="表格名称">
                         </div>
                     </div>
                     <div class="col-auto">
                         <button type="submit" class="btn btn-primary mb-2"  v-on:click="create_table_template()"  >创建表格</button>
-                        <button type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
-                                v-bind:name="tableBlock.id" >删除表格</button>
                     </div>
                 </div>
 
-
-                <table class="table-bordered" style="font-size:14px;margin-top:30px"  v-for="rowList of tableBlock.tableItems" >
-                    <tr >
-                        <th v-for="thItem of tableBlock.thItems" style="padding:4px" width="25%" >
-                            <span v-text="thItem.text" style="padding:4px"></span>
-                        </th>
-                    </tr>
-
-
-                    <tr v-for="row of rowList" >
-                        <td v-for="tdItem of row" style="padding:2px" width="25%" >
-                            <input  v-model="tdItem.value" style="width:100%"  v-if="tdItem.type  == 0" />
-
-                            <textarea  v-model="tdItem.value" rows="3" v-if="tdItem.type != 0" ></textarea>
-                        </td>
-
-
-
-
-                    </tr>
-
-                </table>
-
-
             </div>
 
 
-            <div style="margin-top:50px">
-                <input type="text" id="template_name_id" style="font-size:12px" class="col-sm-4"   placeholder="输入模板名称">
-                <button type="button" class="btn btn-primary" v-on:click="save_template()"> 保存模板</button>
 
+            <div class="form-row align-items-center">
+                <div class="col-auto" style="width:300px">
+                    <div class="input-group mb-1">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">模板名称</div>
+                        </div>
+                        <input type="text" id="template_name_id" class="form-control"    placeholder="输入模板名称">
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary mb-2"  v-on:click="save_template()"  >保存模板</button>
+                </div>
             </div>
+
         </div>
 
         <!-- Modal  start -->

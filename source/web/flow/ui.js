@@ -46,6 +46,8 @@ Vue  对象的结构
 --tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
+    --table_name                    // 表格名称
+    --table_type                    //0: 横向表格   1: 纵向表格
     --thItems[]                     //【用户输入】 模板的定位元素， 用户点击选择的Block  首位两端的就可以， 最少两个
                                     // [ {left, right, top, bottom}, {left, right, top, bottom}]
     --th_count                      //【用户输入】 【需要保存的内容】   实际表格列数， 用户自己填入， 用户生成分割线
@@ -89,8 +91,10 @@ function add_table_block(){
     var tableBlock = {}
     tableBlock['id']= uuid(8, 16)
     tableBlock['thItems'] = new Array()
-    tableBlock['save_location_items'] = new Array()
 
+    tableBlock['save_location_items'] = new Array()
+    tableBlock['table_type'] = 0
+    tableBlock['table_name'] = 'tb_name_0'
     tableBlock['th_count'] = 0                      //默认表格列数
     tableBlock['row_max_height'] = 100
     tableBlock['status'] = 0
@@ -192,14 +196,21 @@ function create_table_template(){
         return ;
     }
     var thItems = vue.currentTableBlock['thItems']
+
+
     if(thItems.length<2){
-        show_message("表格列数最少为2个")
+        show_message("定位元素最少为2个")
         return ;
     }
     if( vue.currentTableBlock['status'] != 1){
 
         show_message("请先生成分割线")
         return;
+    }
+
+    if(vue.currentTableBlock['table_name'] == ''){
+        show_message("请填写表格名称")
+        return ;
     }
 
 

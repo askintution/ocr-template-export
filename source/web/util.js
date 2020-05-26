@@ -107,3 +107,14 @@ function uuid(len, radix) {
 
   return uuid.join('');
 }
+
+function load_template_list(){
+    var  template_list = localStorage.getItem(LOCAL_SAVE_NAME_TEMPLATE_LIST)
+    if (template_list == null || template_list == ""){
+        template_list = new Array()
+    }else {
+        template_list = JSON.parse(template_list);
+    }
+
+    return template_list
+}

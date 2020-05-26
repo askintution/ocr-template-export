@@ -36,7 +36,7 @@ $(function(){
                     save_template()
                 },
                 select_template_display:function(e){
-//                    alert("bbb")
+                    alert("bbb")
                     select_template_display(e.currentTarget._value)
 
                 }
