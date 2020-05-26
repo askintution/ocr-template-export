@@ -1,3 +1,4 @@
+LOCAL_SAVE_NAME_TEMPLATE_LIST = 'template_list'
 
 /**
 编辑距离算法, 扫描文件， 会有一些字符没有识别出来， 不能判断完全相当， 用编辑距离算法看相识度

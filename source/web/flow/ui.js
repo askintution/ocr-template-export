@@ -1,5 +1,4 @@
 var vue ;
-LOCAL_SAVE_NAME_TEMPLATE_LIST = 'template_list'
 $(function(){
 
     vue = new Vue({

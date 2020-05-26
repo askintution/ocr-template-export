@@ -1,10 +1,3 @@
-var POST_URL = "https://7imr48wed1.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
-
-var CMD_SAVE_TEMPLATE = 'save_template'   // 保存模板的请求命令
-var CMD_GET_FIELD_LIST = 'get_field_list' //  获取一个模板所有的字段
-var CMD_GET_TEMPLATE_LIST = 'get_template_list'   //或者特定类型的模板列表
-var MIN_KEY_BLOCK_COUNT = 3 //一个模板最少的定位元素
-
 var page_width=960;  // 页面宽度
 var page_height=2000;  // 每一页，页面高度
 var matrix = [1,0,0,1];  //矩阵

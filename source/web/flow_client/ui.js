@@ -1,5 +1,4 @@
 var vue ;
-LOCAL_SAVE_NAME_TEMPLATE_LIST = 'template_list'
 $(function(){
 
     vue = new Vue({
@@ -57,7 +56,7 @@ function get_data(url){
         vue.data_url = url
         $("#loading-icon").hide()
 
-        var template_name = 'test001'
+        var template_name = 'test002'
         load_data_from_local(template_name)
         redraw_canvas()
 

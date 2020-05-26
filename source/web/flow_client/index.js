@@ -1,7 +1,3 @@
-var POST_URL = "https://7imr48wed1.execute-api.cn-northwest-1.amazonaws.com.cn/prod/ocr"
-
-var MIN_KEY_BLOCK_COUNT = 3 //一个模板最少的定位元素
-
 var page_width=960;  // 页面宽度
 var page_height=2000;  // 每一页，页面高度
 var matrix = [1,0,0,1];  //矩阵
