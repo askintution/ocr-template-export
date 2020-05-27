@@ -215,15 +215,10 @@ function draw_block_inside(blockItem){
     }
 
      var strokeStyle = 'blue'
-     if(blockItem['blockType'] ==1){  //1 表头; 2 表格中的值
+     if(blockItem['blockType'] ==1){  //1 定位元素
         strokeStyle="red";
         clear_block_item_in_canvas(blockItem)
-     }else if(blockItem['blockType'] ==2){ //1 表头; 2 表格中的值
-        strokeStyle="green";
      }
-
-
-
 
     $('#myCanvas').drawRect({
       layer: true,
@@ -262,7 +257,7 @@ function click_item(blockItem){
         return
     }
 
-    console.log("----------------vue.currentTableBlock['status']   ", vue.currentTableBlock['status'])
+//    console.log("----------------vue.currentTableBlock['status']   ", vue.currentTableBlock['status'])
     if (vue.currentTableBlock['status'] !=0 ){
         show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
         return false;
@@ -272,17 +267,17 @@ function click_item(blockItem){
         if(add_block_to_current_table(blockItem)){
 //            console.log("------------ click_item  1")
             blockItem['selected'] = 1
-            blockItem['blockType'] = 1
-//            draw_block_inside(blockItem)
-            redraw_canvas()
         }else {
 //            console.log("------------ click_item  2")
         }
 
     }else {
-//            console.log("------------ click_item  3")
-//            blockItem['selected'] = 0
+        blockItem['selected'] = 0
+        remove_block_from_current_table(blockItem)
+
+//        console.log("------------ click_item  3")
     }
+    redraw_canvas()
 }
 
 /**
@@ -385,14 +380,13 @@ function draw_split_table_line(){
 /**
 滑动分割线， 找到适合分割表格的位置
 */
-function create_split_thItems_line(box, row_max_height){
+function create_split_thItems_line(box, col_num,  row_max_height){
 
     row_max_height = parseInt(row_max_height)
     line_height = box['bottom'] - box['top']
     line_width = box['right'] - box['left']
     line_top = box['top']
     line_left = box['left']
-    col_num = parseInt(box['th_count'])
     console.log("     create_split_thItems_line  col_num: [%d]  row_max_height:  [%d]", col_num , row_max_height  )
 
     col_width = line_width / col_num

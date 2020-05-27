@@ -25,7 +25,26 @@ function add_vertical_table_block(){
 
 function create_vertical_table_split_th(){
 
-    alert("create_vertical_table_split_th")
+    if( !has_current_table_block()){
+        return ;
+    }
+
+    var thItems = vue.currentTableBlock['thItems']
+    if(thItems.length<1){
+        show_message("至少一个定位元素")
+        return ;
+    }
+    vue.currentTableBlock['status'] = 1
+
+    var box = get_thItems_box(thItems, vue.currentTableBlock['th_count'])
+    var row_max_height = parseInt(vue.currentTableBlock['row_max_height'])
+    if (row_max_height< 15 || row_max_height> 300){
+        show_message("请确认行高是否正确 ")
+        return;
+    }
+    create_split_thItems_line(box, 1,  row_max_height)
+
+
 }
 
 function create_vertical_table_template(){

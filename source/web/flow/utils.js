@@ -365,3 +365,69 @@ function save_template(){
     }
 
 }
+
+
+
+
+
+/**
+将页面元素添加到 表格中， 作为表格定位元素
+*/
+function add_block_to_current_table(blockItem){
+
+//    console.log("blockItem id: ", blockItem['id'])
+    if( !has_current_table_block()){
+            return false;
+    }
+    if (vue.currentTableBlock['status'] !=0 ){
+        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
+        return false;
+    }
+
+    var thItems = vue.currentTableBlock['thItems']
+    blockItem['blockType']= 1 // 0 未选中 1 表头; 2 表格中的值
+    blockItem['table_id']= vue.currentTableBlock['id']
+    thItems.push(blockItem)
+
+    var save_location_items = copy_block_item(blockItem)
+    vue.currentTableBlock['save_location_items'].push(save_location_items)
+
+    vue.currentTableBlock['th_count'] = thItems.length
+    vue.currentTableBlock['thItems'] =  thItems
+    return true;
+}
+
+/**
+将页面元素从表格中删除
+*/
+function remove_block_from_current_table(blockItem){
+
+//    console.log("blockItem id: ", blockItem['id'])
+    if( !has_current_table_block()){
+            return false;
+    }
+    if (vue.currentTableBlock['status'] !=0 ){
+        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
+        return false;
+    }
+
+    var thItems = vue.currentTableBlock['thItems']
+
+    var delete_index = -1;
+    for(var i=0; i<thItems.length; i++){
+        if(thItems[i]['id'] == blockItem['id']){
+            blockItem['table_id']= ''
+            blockItem['blockType'] = 0
+            delete_index = i
+
+        }
+    }
+    thItems.splice(delete_index, delete_index+1)
+    var save_location_items = copy_block_item(blockItem)
+    vue.currentTableBlock['save_location_items'].push(save_location_items)
+    vue.currentTableBlock['th_count'] = thItems.length
+    vue.currentTableBlock['thItems'] =  thItems
+    return true;
+}
+
+
