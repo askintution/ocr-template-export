@@ -195,8 +195,6 @@ function re_arrange_position_block(blockItem , page_margin, margin_document_top)
 function is_display_block(blockItem){
     //LINE
     if (blockItem['raw_block_type'] == 'LINE'){
-//     && blockItem['child_list'].length>1
-//        console.log("-------------------------  ", blockItem['child_list'].length)
         return false
     }
     return true
@@ -303,14 +301,22 @@ function redraw_canvas(){
 画出表格的分割线
 */
 function draw_split_table_line(){
-
     if(vue.tableBlockList ==null || vue.tableBlockList.length ==0 ){
         return ;
     }
 
-
     for( var tableBlock of vue.tableBlockList){
+         if(tableBlock['table_type'] ==0){
+            draw_split_table_line_horizontal(tableBlock)
+         }else {
+            draw_split_table_line_horizontal(tableBlock)
+         }
 
+    }
+
+}
+
+function draw_split_table_line_horizontal(tableBlock){
 
         var col_poz_list = tableBlock['col_poz_list']
         var row_poz_list = tableBlock['row_poz_list']
@@ -343,7 +349,7 @@ function draw_split_table_line(){
 
         }
 
-        if(row_poz_list.length>2){
+        if(row_poz_list.length>1){
             for(var j=1; j< row_poz_list.length; j++){
                 $('#myCanvas').drawLine({
                       strokeStyle: '#000',
@@ -371,7 +377,6 @@ function draw_split_table_line(){
           x5: left, y5: top
         });
 
-    }
 
 }
 

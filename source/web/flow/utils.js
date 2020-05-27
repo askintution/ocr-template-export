@@ -226,7 +226,9 @@ function  get_thItems_box(thItems, th_count){
 function sort_block_by_x(a,b) {
     return a['x']-b['x'];
 }
-
+function sort_block_by_y(a,b) {
+    return a['y']-b['y'];
+}
 /**
 显示错误消息
 */

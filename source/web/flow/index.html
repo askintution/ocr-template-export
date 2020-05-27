@@ -106,7 +106,9 @@
                         </div>
                     </div>
                     <div class="col-auto">
-                        <button type="submit" οninput="value=value.replace(/[^\d]/g,'')"  class="btn btn-primary mb-2"  v-on:click="create_table_split_th()" >生成分割线</button>
+                        <button type="submit" οninput="value=value.replace(/[^\d]/g,'')"  class="btn btn-primary mb-2"
+                                v-bind:name="tableBlock.id"
+                                v-on:click="create_table_split_th($event)" >生成分割线</button>
                     </div>
                 </div>
 
@@ -120,7 +122,9 @@
                         </div>
                     </div>
                     <div class="col-auto">
-                        <button type="submit" class="btn btn-primary mb-2"  v-on:click="create_table_template()"  >创建表格</button>
+                        <button type="submit" class="btn btn-primary mb-2"
+                                v-bind:name="tableBlock.id"
+                                v-on:click="create_table_template($event)"  >创建表格</button>
                     </div>
                 </div>
 
@@ -132,7 +136,8 @@
                 <!--  纵向表格开始-->
                 <template  v-if="tableBlock.table_type==1">
                     <span >纵向表格</span>  <small v-text="tableBlock.id"  ></small>
-                    <button style="margin-left:175px;margin-bottom:5px" type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
+                    <button style="margin-left:175px;margin-bottom:5px" type="button" class="btn btn-light"
+                            v-on:click="delete_table_block($event)"
                             v-bind:name="tableBlock.id" >删除表格</button>
 
                     <div class="form-row align-items-center">
@@ -147,7 +152,8 @@
 
                         <div class="col-auto">
                             <button type="submit" οninput="value=value.replace(/[^\d]/g,'')"  class="btn btn-primary mb-2"
-                                    v-on:click="create_vertical_table_split_th()" >生成分割线</button>
+                                    v-bind:name="tableBlock.id"
+                                    v-on:click="create_vertical_table_split_th($event)" >生成分割线</button>
                         </div>
                     </div>
 
@@ -161,7 +167,9 @@
                             </div>
                         </div>
                         <div class="col-auto">
-                            <button type="submit" class="btn btn-primary mb-2"  v-on:click="create_vertical_table_template()"  >创建表格</button>
+                            <button type="submit" class="btn btn-primary mb-2"
+                                    v-bind:name="tableBlock.id"
+                                    v-on:click="create_vertical_table_template($event)"  >创建表格</button>
                         </div>
                     </div>
 

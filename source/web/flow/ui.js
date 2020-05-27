@@ -26,19 +26,27 @@ $(function(){
                     add_vertical_table_block()
                 },
 
-                create_table_split_th:function(){
-                    create_table_split_th()
+
+                create_table_split_th:function(e){
+                    table_block_id = e.currentTarget.name
+                    create_table_split_th(table_block_id)
                 },
-                create_vertical_table_template:function(){
-                    create_vertical_table_template()
+                create_vertical_table_split_th:function(e){
+                    table_block_id = e.currentTarget.name
+                    create_vertical_table_split_th(table_block_id)
                 },
 
-                create_table_template:function(){
-                    create_table_template()
+
+                create_table_template:function(e){
+                    table_block_id = e.currentTarget.name
+                    create_table_template(table_block_id)
                 },
-                create_vertical_table_split_th:function(){
-                    create_vertical_table_split_th()
+                create_vertical_table_template:function(e){
+                    create_vertical_table_template(table_block_id)
                 },
+
+
+
 
                 save_template:function(){
                     save_template()
@@ -125,7 +133,11 @@ function add_table_block(){
 */
 function delete_table_block(table_block_id){
 
-    vue.currentTableBlock = {}
+    if(vue.currentTableBlock['id'] == table_block_id){
+        vue.currentTableBlock = {}
+    }
+
+
     vue.tableBlockList = vue.tableBlockList.filter(function(item) {
         return item['id'] != table_block_id
     });
@@ -146,7 +158,7 @@ function delete_table_block(table_block_id){
 /**
 生成划分表格列的 分割线
 */
-function create_table_split_th(){
+function create_table_split_th(table_block_id){
     if( !has_current_table_block()){
         return ;
     }
@@ -156,7 +168,13 @@ function create_table_split_th(){
         show_message("定位元素 列数最少为2个")
         return ;
     }
-//    redraw_canvas()
+
+    if(vue.currentTableBlock['id'] != table_block_id){
+        show_message("当前表格已经创建成功， 如需修改，请删除以后重建")
+        return;
+    }
+
+
     vue.currentTableBlock['status'] = 1
 
     var box = get_thItems_box(thItems)
@@ -171,7 +189,9 @@ function create_table_split_th(){
 /**
 根据已经划分的表头  创建表格模板
 */
-function create_table_template(){
+function create_table_template(table_block_id){
+
+
 
 
     if( !has_current_table_block()){
@@ -185,8 +205,12 @@ function create_table_template(){
         return ;
     }
     if( vue.currentTableBlock['status'] != 1){
-
         show_message("请先生成分割线")
+        return;
+    }
+
+    if(vue.currentTableBlock['id'] != table_block_id){
+        show_message("当前表格已经创建成功， 如需修改，请删除以后重建")
         return;
     }
 

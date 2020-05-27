@@ -13,7 +13,7 @@ function add_vertical_table_block(){
     tableBlock['table_type'] = 1    //0 横向  1: 纵向
     tableBlock['table_name'] = 'tb_name_'+table_item_index
     tableBlock['th_count'] = 0                      //默认表格列数
-    tableBlock['row_max_height'] = 100
+    tableBlock['row_max_height'] = 40
     tableBlock['status'] = 0
     vue.currentTableBlock = tableBlock
     vue.tableBlockList.push(tableBlock)
@@ -23,7 +23,7 @@ function add_vertical_table_block(){
 
 }
 
-function create_vertical_table_split_th(){
+function create_vertical_table_split_th(table_block_id){
 
     if( !has_current_table_block()){
         return ;
@@ -34,6 +34,12 @@ function create_vertical_table_split_th(){
         show_message("至少一个定位元素")
         return ;
     }
+
+    if(vue.currentTableBlock['id'] != table_block_id){
+        show_message("当前表格已经创建成功， 如需修改，请删除以后重建")
+        return;
+    }
+
     vue.currentTableBlock['status'] = 1
 
     var box = get_thItems_box(thItems, vue.currentTableBlock['th_count'])
@@ -47,6 +53,93 @@ function create_vertical_table_split_th(){
 
 }
 
-function create_vertical_table_template(){
-    alert("create_vertical_table_template")
+function create_vertical_table_template(table_block_id){
+    if( !has_current_table_block()){
+        return ;
+    }
+    var thItems = vue.currentTableBlock['thItems']
+
+    if(thItems.length<1){
+        show_message("至少有一个定位元素")
+        return ;
+    }
+    if( vue.currentTableBlock['status'] != 1){
+        show_message("请先生成分割线")
+        return;
+    }
+     if(vue.currentTableBlock['id'] != table_block_id){
+        show_message("当前表格已经创建成功， 如需修改，请删除以后重建")
+        return;
+    }
+
+
+    if(vue.currentTableBlock['table_name'] == ''){
+        show_message("请填写表格名称")
+        return ;
+    }
+
+    var th_x_poz_list = vue.currentTableBlock['th_x_poz_list']
+
+    console.log('th_x_poz_list: ', th_x_poz_list)
+    var col_poz = {'left':th_x_poz_list[0], 'right': th_x_poz_list[1]}
+    var col_poz_list = []
+    col_poz_list.push(col_poz)
+
+
+    vue.currentTableBlock['status'] =2
+
+
+    //step 1. 找到每行第一个元素， 找到行的划分
+    var tableItems = new Array()
+    var row_poz_list = find_first_block_in_line(thItems)
+
+    vue.currentTableBlock['row_poz_list'] = row_poz_list
+    vue.currentTableBlock['col_poz_list'] = col_poz_list
+    split_vertical_td_by_col_row(row_poz_list, col_poz_list)
+    redraw_canvas()
+
+
+}
+
+/**
+找到划分行的y 坐标
+把所有元素 按照y排序， 每行取一个元素
+*/
+function  find_first_block_in_line(thItems){
+    var line_error_rate = 15
+    thItems.sort(sort_block_by_y);
+
+    var new_item_poz_list = []
+    new_item_poz_list.push(thItems[0]['top'])
+    for(var i=1; i<thItems.length; i++){
+
+        if( Math.abs(thItems[i]['top'] - new_item_poz_list[new_item_poz_list.length-1]) > line_error_rate ){
+            new_item_poz_list.push(thItems[i]['top'])
+        }
+    }
+
+    new_item_poz_list.push(new_item_poz_list[new_item_poz_list.length-1] + vue.currentTableBlock['row_max_height'])
+    console.log("new_th_item_list: ", JSON.stringify(new_item_poz_list ))
+
+
+    var row_poz_list = []
+    for(var j=1; j< new_item_poz_list.length; j++ ){
+
+        var row_poz = {'top':new_item_poz_list[j-1], 'bottom':new_item_poz_list[j]}
+        row_poz_list.push(row_poz)
+    }
+
+
+
+    console.log("row_poz_list: ", JSON.stringify(row_poz_list ))
+    return row_poz_list
+}
+
+/**
+划分行内元素
+*/
+function split_vertical_td_by_col_row(row_poz_list, col_poz_list){
+
+
+
 }
