@@ -1,3 +1,4 @@
+var matrix = [1,0,0,1];  //矩阵， 用于做页面旋转
 LOCAL_SAVE_NAME_TEMPLATE_LIST = 'template_list'
 
 /**

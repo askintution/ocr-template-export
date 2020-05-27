@@ -114,6 +114,10 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
 
         var first_item_list = []
         for(var i=0; i<vue.blockItemList.length; i++ ){
+            if (vue.blockItemList[i]['raw_block_type'] =='LINE'){
+                continue
+            }
+
             var _blockItem = vue.blockItemList[i]
             if(_blockItem['text'] == first_item['text']
                  && _blockItem['x'] > first_item['left'] - error_range
@@ -123,8 +127,6 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
 
              }
         }
-
-
 
         var top  = save_location_items[0]['top']
         var bottom = save_location_items[save_location_items.length-1]['bottom']
@@ -152,7 +154,7 @@ function find_target_block_item_list(first_item, save_location_items){
     var del_x = first_item['left'] - save_location_items[0]['left']
     var del_y = first_item['top'] - save_location_items[0]['top']
 
-    console.log("###### del_x:%d   del_y: %d", del_x, del_y)
+//    console.log("###### del_x:%d   del_y: %d", del_x, del_y)
 
     for(var i=1; i<save_location_items.length; i++ ){
 
@@ -187,9 +189,11 @@ function find_target_block_item_list(first_item, save_location_items){
 
 function find_block_item_in_box(target_blockItem){
 
-    var error_range = 50
-    print_block_item("target_blockItem------", target_blockItem)
+    var error_range = 10
     for(var _blockItem of  vue.blockItemList){
+        if (_blockItem['raw_block_type'] =='LINE'){
+            continue
+        }
 
         if(_blockItem['text'] == target_blockItem['text']
             && _blockItem['x'] > target_blockItem['left'] - error_range
@@ -197,7 +201,6 @@ function find_block_item_in_box(target_blockItem){
             && _blockItem['y'] > target_blockItem['top'] - error_range
             && _blockItem['y'] < target_blockItem['bottom'] + error_range){
 
-            print_block_item("****** ", _blockItem)
             return _blockItem
 
         }

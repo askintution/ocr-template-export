@@ -6,7 +6,6 @@ $(function(){
             el: '#main',
             data:{
                 blockItemList:[], //当前页面解析的block元素
-                pageCount:0,
                 tableBlockList:[],
                 currentTableBlock:{},
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/list.json",
@@ -384,18 +383,13 @@ function find_split_column_poz_list(thItems){
 function find_split_row_poz_list(blockItem){
 
     var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
-//    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
-//    blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
 
     var last_item_y = blockItem['bottom']
     var row_y_pos_list = new Array()
 
-//    row_y_pos_list.push(last_item_y)
-
     for(var i=0; i< vue.blockItemList.length; i++ ){
 
         var tempBlockItem = vue.blockItemList[i]
-
         if(tempBlockItem['raw_block_type'] == "LINE"){
             continue
         }
@@ -423,9 +417,6 @@ function find_split_row_poz_list(blockItem){
 
     }//end for
 
-//    for(var poz of row_y_pos_list){
-//        console.log(" 找到的 y 坐标 用于划分行---------------- %d ", poz)
-//    }
 
     var row_poz_list = new Array()
     if(row_y_pos_list.length ==0 ){
@@ -444,16 +435,12 @@ function find_split_row_poz_list(blockItem){
 
     console.log('row_poz_list  length: %d', row_poz_list.length)
 
-//    for(var poz of row_poz_list){
-//            console.log(" 找到的 y 坐标 用于划分行------ [%d   ---    %d] ", poz['top'], poz['bottom'])
-//    }
     return  row_poz_list
 }
 
 /**
 判断是否创建了 表格模板
 */
-
 function has_current_table_block(){
 
     if(vue.currentTableBlock == null || vue.currentTableBlock['id'] == null

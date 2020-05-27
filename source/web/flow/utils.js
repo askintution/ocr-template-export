@@ -23,8 +23,6 @@ function find_parent_block_id_by_child(child_blockItem){
         }
    }
 
-
-
 }
 
 /**
@@ -159,25 +157,9 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
     blockItem['y'] = parseInt((polyArray[2]['y'] + polyArray[0]['y']) / 2.0)
 }
 
-//function clear_block_item_in_canvas(blockItem){
-//    $('#myCanvas').clearCanvas({
-//          x: blockItem['x']-1, y: blockItem['y']-1,
-//          width: blockItem['width']+3,
-//          height: blockItem['height']+3
-//    });
-//
-//    var c=document.getElementById("myCanvas");
-//    var ctx=c.getContext("2d");
-//    ctx.beginPath();
-//    ctx.clearRect(blockItem['left']-1,blockItem['top']-1,blockItem['width']+3,blockItem['height']+3);
-//    ctx.stroke();
-//
-//}
-
 /**
-获取一个表头几个元素的， 坐标位置， top  left  right  height
+获取一个表头几个元素的坐标位置， top  left  right  height
 */
-
 function  get_thItems_box(thItems, th_count){
 
     if(thItems.length <2){
@@ -211,10 +193,10 @@ function  get_thItems_box(thItems, th_count){
 
     var box = {
         th_count: th_count,
-        top: max_top -3,
-        left: max_left -3,
-        right: max_right + 3,
-        bottom: max_bottom + 3
+        top: max_top -2,
+        left: max_left -2,
+        right: max_right + 2,
+        bottom: max_bottom + 2
     }
     console.log("get_thItems_box: ", JSON.stringify(box))
     return box

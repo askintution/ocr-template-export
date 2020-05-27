@@ -1,7 +1,5 @@
-var page_width=960;  // 页面宽度
-var page_height=2000;  // 每一页，页面高度
-var matrix = [1,0,0,1];  //矩阵
-
+var page_width=960;  //默认页面宽度
+var page_height=2000;  //默认页面高度 会根据元素内容自动跳转
 var canvas_width = page_width
 var canvas_height = page_height
 
@@ -77,7 +75,7 @@ function parse_data_by_page(page, margin_document_top){
     // 将所有'行'的元素取出来
     for (i =0 ; i< data['Blocks'].length ; i++){
         if(data['Blocks'][i]['Page'] == page  &&
-            data['Blocks'][i]['BlockType']=='WORD' ){
+        (data['Blocks'][i]['BlockType']=='LINE' || data['Blocks'][i]['BlockType']=='WORD')){
             blockList[index] = data['Blocks'][i]
             index++
         }
@@ -236,9 +234,7 @@ function draw_block_inside(blockItem){
 
 
 function click_item(blockItem){
-
     print_block_item("click_item", blockItem)
-
 }
 
 /**

@@ -1,7 +1,5 @@
-var page_width=960;  // 页面宽度
-var page_height=2000;  // 每一页，页面高度
-var matrix = [1,0,0,1];  //矩阵
-
+var page_width=960;  //默认页面宽度
+var page_height=2000;  //默认页面高度 会根据元素内容自动跳转
 var canvas_width = page_width
 var canvas_height = page_height
 
@@ -10,23 +8,20 @@ var canvas_height = page_height
 **/
 function parse_data(data){
     pageCount = parseInt(data['DocumentMetadata']['Pages'])
-    vue.pageCount = pageCount //当前文档总页数
     vue.data = data   //保存数据
-
 
     if(pageCount<=0){
         show_message("该文档 没有内容")
         return;
     }
 
-
-    var margin_document_top = 0.0 // 累计文档高度
-    var blockItemList =  new Array()  //保存所有元素的列表
-    var document_page_height = 0.0  //文档的累计高度
+    var margin_document_top = 0.0       //累计文档开始高度
+    var blockItemList =  new Array()    //保存所有元素的列表
+    var document_page_height = 0.0      //文档的累计总高度
 
     //按照页数解析所有页面元素， 并且把它们拼接到一起
     for (count=0 ; count< pageCount; count++){
-        result = parse_data_by_page(count+1 , margin_document_top)  // Demo 展示第一页
+        result = parse_data_by_page(count+1 , margin_document_top)
 
         if(result == null){
             continue
@@ -53,8 +48,7 @@ function parse_data(data){
     canvas_height = document_zoom_out_height;
     reset_canvas(page_width , document_zoom_out_height)
 
-    console.log('Canvas size=[%f , %f]  document height %f ',
-    page_width, document_zoom_out_height,  document_page_height)
+    console.log('Canvas size=[%f , %f]  document height %f ', page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
 
     console.log("----blockItemList length:   ", vue.blockItemList.length)
@@ -119,14 +113,11 @@ function parse_data_by_page(page, margin_document_top){
     for(i =0 ; i<block_item_list.length ; i++){
         var blockItem = block_item_list[i]
         re_arrange_position_block(blockItem, page_margin, margin_document_top)
-//        console.log(blockItem)
     }
 
     return {'blockItemList': block_item_list, 'page_margin':page_margin }
 
 }
-
-
 
 /**
 计算所有元素经过旋转以后的新坐标
@@ -154,7 +145,6 @@ function create_block(block){
         id:block['Id'],
         raw_block_type: block['BlockType'],   // LINE or WORD
         newPoly:polyArray,
-//        polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
         selected:0,  // 是否选中
         blockType:0, //0 默认;  1 表头; 2 表格中的值
         text:block['Text']
@@ -247,9 +237,7 @@ function draw_block_inside(blockItem){
 function click_item(blockItem){
 
     var selected = blockItem['selected']
-     console.log('id=%s,  [x=%f, y=%f] [top=%f ,left=%f, bottom=%f, right=%f] [%s]  ',
-                   blockItem['id'], blockItem['x'], blockItem['y'],blockItem['top'],
-                   blockItem['left'],blockItem['bottom'],blockItem['right'], blockItem['text'] )
+    print_block_item("click_item", blockItem)
     if(blockItem['raw_block_type'] == 'LINE'){
         return
     }
@@ -262,7 +250,6 @@ function click_item(blockItem){
 
     if(selected == 0){
         if(add_block_to_current_table(blockItem)){
-//            console.log("------------ click_item  1")
             blockItem['selected'] = 1
         }else {
 //            console.log("------------ click_item  2")
@@ -271,8 +258,7 @@ function click_item(blockItem){
     }else {
         blockItem['selected'] = 0
         remove_block_from_current_table(blockItem)
-
-//        console.log("------------ click_item  3")
+//      console.log("------------ click_item  3")
     }
     redraw_canvas()
 }
@@ -285,15 +271,12 @@ function redraw_canvas(){
     $('#myCanvasParent').append('<canvas id="myCanvas" height="'+canvas_height+'" width="'+canvas_width+'" style="border:1px solid #000000;"></canvas>');
 
 
-    console.log("---------------------------redraw_canvas-----------------------    ")
-    $('#myCanvas').clearCanvas()
+    console.log("---------------------------redraw_canvas  ")
     for(i =0 ; i<vue.blockItemList.length; i++){
         draw_block_inside(vue.blockItemList[i] )
     }
 
     draw_split_table_line()
-
-
 }
 
 /**
@@ -305,7 +288,7 @@ function draw_split_table_line(){
     }
 
     for( var tableBlock of vue.tableBlockList){
-         if(tableBlock['table_type'] ==0){
+         if(tableBlock['table_type'] ==0){ //目前两种表格都是一致的
             draw_split_table_line_horizontal(tableBlock)
          }else {
             draw_split_table_line_horizontal(tableBlock)
@@ -322,18 +305,14 @@ function draw_split_table_line_horizontal(tableBlock){
 
         if( col_poz_list == null || col_poz_list.length ==0
             || row_poz_list == null || row_poz_list.length ==0 ){
-
             return
         }
 
         var top = row_poz_list[0]['top']
         var bottom = row_poz_list[row_poz_list.length-1]['bottom']
 
-
         var left = col_poz_list[0]['left']
         var right = col_poz_list[col_poz_list.length-1]['right']
-
-
 
         for(var i=1; i<col_poz_list.length; i++ ){
             $('#myCanvas').drawLine({
@@ -394,12 +373,12 @@ function create_split_thItems_line(box, col_num,  row_max_height){
     if(line_left <=1 ){
         line_left = 2
     }
-    console.log("     create_split_thItems_line  col_num: [%d]  row_max_height:  [%d]", col_num , row_max_height  )
+//    console.log("     create_split_thItems_line  col_num: [%d]  row_max_height:  [%d]", col_num , row_max_height  )
 
     col_width = line_width / col_num
     col_item_y_poz_map = new Map()
     for(var i=0 ; i< col_num + 1; i++){
-        x = col_width * i + line_left
+        x = (col_width -2) * i + line_left
         col_item_y_poz_map.set(i, parseInt(x))
 
 
@@ -419,5 +398,6 @@ function create_split_thItems_line(box, col_num,  row_max_height){
           }
         });
     }
+    //th_x_poz_list 分割线x坐标
     vue.currentTableBlock['th_x_poz_list'] = sort_map_return_list(col_item_y_poz_map)
 }
