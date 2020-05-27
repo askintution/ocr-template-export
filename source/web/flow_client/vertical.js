@@ -7,13 +7,12 @@ function find_table_items_by_th_items_vertical(thItems, th_x_poz_list){
     var col_poz = {'left':th_x_poz_list[0], 'right': th_x_poz_list[1]}
     var col_poz_list = []
     col_poz_list.push(col_poz)
-
     return col_poz_list
 }
 
 
 /***
-//step 2.  找到行划分
+//step 2.  找到行划分 row_poz_list
 */
 function find_split_row_poz_list_vertical(thItems, row_max_height){
 
@@ -36,7 +35,6 @@ function find_split_row_poz_list_vertical(thItems, row_max_height){
 
     var row_poz_list = []
     for(var j=1; j< new_item_poz_list.length; j++ ){
-
         var row_poz = {'top':new_item_poz_list[j-1], 'bottom':new_item_poz_list[j]}
         row_poz_list.push(row_poz)
     }
@@ -69,130 +67,6 @@ function split_td_by_col_row_vertical(thItems, col_poz_list, row_poz_list){
 }
 
 
-
-
-function create_vertical_table_split_th(table_block_id){
-
-    if( !has_current_table_block()){
-        return ;
-    }
-
-    var thItems = vue.currentTableBlock['thItems']
-    if(thItems.length<1){
-        show_message("至少一个定位元素")
-        return ;
-    }
-
-    if(vue.currentTableBlock['id'] != table_block_id){
-        show_message("当前表格已经创建成功， 如需修改，请删除以后重建")
-        return;
-    }
-
-    vue.currentTableBlock['status'] = 1
-
-    var box = get_thItems_box(thItems, vue.currentTableBlock['th_count'])
-    var row_max_height = parseInt(vue.currentTableBlock['row_max_height'])
-    if (row_max_height< 15 || row_max_height> 300){
-        show_message("请确认行高是否正确 ")
-        return;
-    }
-    create_split_thItems_line(box, 1,  row_max_height)
-
-
-}
-
-function create_vertical_table_template(table_block_id){
-    if( !has_current_table_block()){
-        return ;
-    }
-    var thItems = vue.currentTableBlock['thItems']
-
-    if(thItems.length<1){
-        show_message("至少有一个定位元素")
-        return ;
-    }
-    if( vue.currentTableBlock['status'] != 1){
-        show_message("请先生成分割线")
-        return;
-    }
-     if(vue.currentTableBlock['id'] != table_block_id){
-        show_message("当前表格已经创建成功， 如需修改，请删除以后重建")
-        return;
-    }
-
-
-    if(vue.currentTableBlock['table_name'] == ''){
-        show_message("请填写表格名称")
-        return ;
-    }
-
-    var th_x_poz_list = vue.currentTableBlock['th_x_poz_list']
-
-    console.log('th_x_poz_list: ', th_x_poz_list)
-    var col_poz = {'left':th_x_poz_list[0], 'right': th_x_poz_list[1]}
-    var col_poz_list = []
-    col_poz_list.push(col_poz)
-
-
-    vue.currentTableBlock['status'] =2
-
-
-    //step 1. 找到每行第一个元素， 找到行的划分
-    var tableItems = new Array()
-    var row_poz_list = find_first_block_in_line(thItems)
-
-    vue.currentTableBlock['row_poz_list'] = row_poz_list
-    vue.currentTableBlock['col_poz_list'] = col_poz_list
-    split_vertical_td_by_col_row(thItems, row_poz_list, col_poz_list)
-    redraw_canvas()
-
-
-}
-
-
-/**
-划分行内元素
-*/
-function split_vertical_td_by_col_row(thItems, row_poz_list, col_poz_list){
-
-
-    var blockItemList = vue.blockItemList
-
-    var table_row_list = [] // {'key': key , 'value': value}
-
-
-    for (var row of row_poz_list){
-        var box = {'left': col_poz_list[0]['left'], 'right': col_poz_list[0]['right'] ,
-                     'top': row['top'], 'bottom': row['bottom'] }
-
-        var find_row_block_list = find_block_list_in_box(box)
-    }
-
-
-
-
-}
-
-function find_block_list_in_box(box){
-   console.log("^^^^^^^^box  ", JSON.stringify(box))
-   var block_list = []
-   for(var blockItem of vue.blockItemList){
-        if (blockItem['raw_block_type'] =='LINE'){
-            continue
-        }
-        if ( blockItem['x'] > box['left'] && blockItem['x']<= box['right']
-           &&  blockItem['y']> box['top'] && blockItem['y'] <= box['bottom']){
-            block_list.push(blockItem)
-            console.log("***********   ", blockItem['text'])
-
-        }
-   }
-
-    return block_list
-}
-
-
-
 /**
 根据 坐标  找到word 元素, 并且合并文本内容,
 并且将这些元素拆分
@@ -222,4 +96,77 @@ function merge_td_text_by_box_block_type(box){
     td_text_list.push(td_text)
 
    return td_text_list
+}
+
+
+/**
+根据定位元素， 寻找thItem
+*/
+function find_th_items_from_location_item_vertical(save_location_items){
+        console.error("************************* ")
+        if(1==1){
+            return null;
+        }
+        var error_range = 50  // 左右误差范围
+        save_location_items.sort(sort_block_by_left);
+
+        var total_col_list = []
+        for (var location_item of save_location_items){
+//            console.log("************   ", JSON.stringify(location_item))
+            var col_list = []
+            for(var _blockItem of  vue.blockItemList){
+
+                if(_blockItem['raw_block_type'] == "LINE" ){
+                     continue
+                }
+
+                if(_blockItem['text'] == location_item['text']
+                    && _blockItem['x'] > location_item['left'] - error_range
+                    && _blockItem['x'] < location_item['right'] + error_range){
+//                    console.log(" [%s] [%s]  [x=%d, y=%d] ", _blockItem['id'], _blockItem['text'] , _blockItem['x'] ,  _blockItem['y'] )
+                    col_list.push(_blockItem)
+
+                }
+            }
+            col_list.sort(sort_block_by_top)
+            total_col_list.push(col_list)
+        }
+
+
+        var total_th_item_list = []
+//        console.log("----------- 按照第一行寻找行")
+        // 按照第一行寻找行
+        for( var col_item of total_col_list[0]){
+
+            var th_item_list = []
+            var top = col_item['top'] - error_range
+            var bottom = col_item['bottom'] + error_range
+
+            th_item_list.push(col_item)
+            console.log("---- [%s] [%s]  [x=%d, y=%d] ", col_item['id'], col_item['text'] , col_item['x'] ,  col_item['y'] )
+
+
+            for(var j=1; j< total_col_list.length; j++ ){
+
+                for(var temp_col_item of total_col_list[j]){
+
+                    if(temp_col_item['y'] > top && temp_col_item['y']< bottom ){
+                        th_item_list.push(temp_col_item)
+                    }
+                }
+            }
+
+            if (th_item_list.length == save_location_items.length){
+                for(var _blockItem of th_item_list){
+                    _blockItem['blockType'] = 1
+                }
+                total_th_item_list.push(th_item_list)
+            }else {
+                console.warn("%%%%%%%%%%%%%%   save_location_items=%d        th_item_list=%d", save_location_items.length, th_item_list.length)
+            }
+
+        }
+        return total_th_item_list
+
+
 }

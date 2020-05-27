@@ -150,10 +150,23 @@ function load_data_from_local(template_name){
 
         console.log("---- table_name ", tableBlock['table_name'])
         save_location_items = tableBlock['save_location_items']
-        total_th_item_list = find_th_items_from_location_item(save_location_items)
+
+
+        var total_th_item_list = []
+        if(tableBlock['table_type'] == 0){
+            total_th_item_list = find_th_items_from_location_item(save_location_items)
+        }else {
+            total_th_item_list = find_th_items_from_location_item_vertical(save_location_items)
+        }
+
 //        --total_poz_list
 //            --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
 //            --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
+
+        if(total_th_item_list == null || total_th_item_list.length == 0){
+            console.error("----------------- continue ")
+            continue
+        }
 
         var total_poz_list = []
 
@@ -200,15 +213,15 @@ function find_th_items_from_location_item(save_location_items){
             for(var _blockItem of  vue.blockItemList){
 
                 if(_blockItem['raw_block_type'] == "LINE" ){
-                            continue
+                     continue
                 }
 
                 if(_blockItem['text'] == location_item['text']
                     && _blockItem['x'] > location_item['left'] - error_range
                     && _blockItem['x'] < location_item['right'] + error_range){
-//                    console.log(" [%s] [%s]  [x=%d, y=%d] ", _blockItem['id'], _blockItem['text'] , _blockItem['x'] ,  _blockItem['y'] )
+                    console.log(" [%s] [%s]  [x=%d, y=%d] ", _blockItem['id'], _blockItem['text'] , _blockItem['x'] ,  _blockItem['y'] )
                     col_list.push(_blockItem)
-                    _blockItem['blockType'] = 1
+
                 }
             }
             col_list.sort(sort_block_by_top)
@@ -226,7 +239,7 @@ function find_th_items_from_location_item(save_location_items){
             var bottom = col_item['bottom'] + error_range
 
             th_item_list.push(col_item)
-            console.log("---- [%s] [%s]  [x=%d, y=%d] ", col_item['id'], col_item['text'] , col_item['x'] ,  col_item['y'] )
+            console.debug("---- [%s] [%s]  [x=%d, y=%d] ", col_item['id'], col_item['text'] , col_item['x'] ,  col_item['y'] )
 
 
             for(var j=1; j< total_col_list.length; j++ ){
@@ -240,8 +253,14 @@ function find_th_items_from_location_item(save_location_items){
             }
 
             if (th_item_list.length == save_location_items.length){
+                for(var _blockItem of th_item_list){
+                    _blockItem['blockType'] = 1
+                }
                 total_th_item_list.push(th_item_list)
+            }else {
+                console.error("%%%%%%%%%%%%%%   save_location_items=%d        th_item_list=%d", save_location_items.length, th_item_list.length)
             }
+
         }
 
 //        console.log("^^^^^^^^^^^^^^^^  ", total_th_item_list.length)

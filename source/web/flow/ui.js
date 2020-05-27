@@ -103,7 +103,8 @@ function get_data(url){
 新加一种类型的 tableBlock模板
 */
 function add_table_block(){
-    if (vue.tableBlockList.length >0 && vue.currentTableBlock['status'] !=2 ){
+    if (vue.tableBlockList.length >0 &&
+            vue.currentTableBlock['status'] != undefined &&  vue.currentTableBlock['status'] !=2 ){
         show_message("请先完成前一个表格[ "+vue.currentTableBlock['id']+" ]的制作")
         return false;
     }
@@ -165,8 +166,14 @@ function create_table_split_th(table_block_id){
 
     var thItems = vue.currentTableBlock['thItems']
     if(thItems.length<2){
-        show_message("定位元素 列数最少为2个")
+        show_message("定位元素最少为2个")
         return ;
+    }
+
+    if(vue.currentTableBlock['th_count']<2){
+        show_message("列数最少为2个")
+        return ;
+
     }
 
     if(vue.currentTableBlock['id'] != table_block_id){
@@ -174,13 +181,13 @@ function create_table_split_th(table_block_id){
         return;
     }
 
-
+    redraw_canvas()
     vue.currentTableBlock['status'] = 1
-
     var box = get_thItems_box(thItems)
 
     var row_max_height = vue.currentTableBlock['row_max_height']
-    create_split_thItems_line(box,vue.currentTableBlock['th_count'],  row_max_height)
+    var col_num = parseInt(vue.currentTableBlock['th_count'])
+    create_split_thItems_line(box, col_num,  row_max_height)
 
 }
 

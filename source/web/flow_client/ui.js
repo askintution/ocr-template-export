@@ -8,7 +8,7 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 templateList:[],
-                current_template_name: 'vertical001',
+                current_template_name: 'h001',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 

@@ -385,7 +385,6 @@ function add_block_to_current_table(blockItem){
     var save_location_items = copy_block_item(blockItem)
     vue.currentTableBlock['save_location_items'].push(save_location_items)
 
-    vue.currentTableBlock['th_count'] = thItems.length
     vue.currentTableBlock['thItems'] =  thItems
     return true;
 }
