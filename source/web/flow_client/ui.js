@@ -8,7 +8,7 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 templateList:[],
-                current_template_name: 'test001',
+                current_template_name: 'vertical001',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -34,6 +34,7 @@ Vue  对象的结构
   --tableBlock{}
     --id  //text
     --name
+    --table_type                    //0: 横向表格   1: 纵向表格
     --th_count                      //【用户输入】 【需要保存的内容】   实际表格列数， 用户自己填入， 用户生成分割线
     --row_max_height                //【用户输入】 【需要保存的内容】   用户输入的行最大的可能高度， 辅助进行识别
     --save_location_items           // 【需要保存的内容】
@@ -79,20 +80,35 @@ function select_template_display(){
 /**
 根据已经划分的表头  创建表格模板
 */
-function create_table_template(thItems, th_x_poz_list , row_max_height){
+function create_table_template(thItems, th_x_poz_list , tableBlock){
 
+    var row_max_height =  tableBlock['row_max_height']
     thItems.sort(sort_block_by_x);
 
     console.log(th_x_poz_list)
 
     //step 1.  找到表头元素 列划分
     var tableItems = new Array()
-    var col_poz_list = find_table_items_by_th_items(thItems, th_x_poz_list)
 
-    //step 2.  找到行划分
-    var row_poz_list =  find_split_row_poz_list(col_poz_list[0], row_max_height)
+    var col_poz_list = []
+    var row_poz_list = []
+    var table_row_list = []
 
-    var table_row_list = split_td_by_col_row( col_poz_list, row_poz_list)
+    if(tableBlock['table_type'] == 0){
+        col_poz_list = find_table_items_by_th_items(thItems, th_x_poz_list)
+            //step 2.  找到行划分
+        row_poz_list =  find_split_row_poz_list(col_poz_list[0], row_max_height)
+
+        table_row_list = split_td_by_col_row( col_poz_list, row_poz_list)
+
+    }else {
+        col_poz_list = find_table_items_by_th_items_vertical(thItems, th_x_poz_list)
+                    //step 2.  找到行划分
+        row_poz_list =  find_split_row_poz_list_vertical(col_poz_list[0], row_max_height)
+
+        table_row_list = split_td_by_col_row_vertical( col_poz_list, row_poz_list)
+
+    }
 
     console.log("********** ", table_row_list)
     return {'row_poz_list': row_poz_list, 'col_poz_list':col_poz_list, 'table_row_list': table_row_list }

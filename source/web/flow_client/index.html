@@ -81,7 +81,7 @@
             </select>
 
 
-            <div v-for="tableBlock of tableBlockList"   class="shadow-sm p-3 mb-3 bg-white rounded">
+            <div v-for="tableBlock of tableBlockList"   class="shadow-sm p-3 mb-2 bg-white rounded">
                 <h4>Table Name: <span v-text="tableBlock.table_name"></span></h4>
 
                 <div v-for="(poz_list, table_index) of tableBlock.total_poz_list" >
@@ -146,6 +146,7 @@
 <script src="./index.js"></script>
 <script src="./utils.js"></script>
 <script src="../util.js"></script>
+<script src="./vertical.js"></script>
 <!--<script source="./network.js"></script>-->
 
 </html>

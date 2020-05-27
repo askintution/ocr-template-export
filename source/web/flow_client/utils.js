@@ -174,7 +174,7 @@ function load_data_from_local(template_name){
         for (var th_item of total_th_item_list){
 
             var new_th_x_poz_list = correct_x_error_range(save_location_items[0]['left'] , th_item[0]['left']  , tableBlock['th_x_poz_list'])
-            total_poz_list.push(create_table_template(th_item, new_th_x_poz_list , tableBlock['row_max_height']))
+            total_poz_list.push(create_table_template(th_item, new_th_x_poz_list , tableBlock))
         }
         tableBlock['total_poz_list'] = total_poz_list
         tableBlockList.push(tableBlock)
