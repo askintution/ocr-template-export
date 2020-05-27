@@ -156,7 +156,7 @@ function load_data_from_local(template_name){
         if(tableBlock['table_type'] == 0){
             total_th_item_list = find_th_items_from_location_item(save_location_items)
         }else {
-            total_th_item_list = find_th_items_from_location_item_vertical(save_location_items)
+            total_th_item_list = find_th_items_from_location_item_vertical(save_location_items, tableBlock['th_x_poz_list'])
         }
 
 //        --total_poz_list

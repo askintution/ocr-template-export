@@ -417,7 +417,6 @@ function remove_block_from_current_table(blockItem){
     thItems.splice(delete_index, delete_index+1)
     var save_location_items = copy_block_item(blockItem)
     vue.currentTableBlock['save_location_items'].push(save_location_items)
-    vue.currentTableBlock['th_count'] = thItems.length
     vue.currentTableBlock['thItems'] =  thItems
     return true;
 }

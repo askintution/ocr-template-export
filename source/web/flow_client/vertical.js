@@ -46,7 +46,7 @@ function find_split_row_poz_list_vertical(thItems, row_max_height){
 /*
 * 找出表格元素
 */
-function split_td_by_col_row_vertical(thItems, col_poz_list, row_poz_list){
+function split_td_by_col_row_vertical(col_poz_list, row_poz_list){
 
       var table_row_list = []
         for(var i=0; i<row_poz_list.length; i++ ){
@@ -102,13 +102,19 @@ function merge_td_text_by_box_block_type(box){
 /**
 根据定位元素， 寻找thItem
 */
-function find_th_items_from_location_item_vertical(save_location_items){
-        console.error("************************* ")
-        if(1==1){
-            return null;
-        }
+function find_th_items_from_location_item_vertical(save_location_items, th_x_poz_list){
+
+
         var error_range = 50  // 左右误差范围
-        save_location_items.sort(sort_block_by_left);
+        save_location_items.sort(sort_block_by_y);
+
+        var top  = save_location_items[0]['top']
+
+        var bottom = save_location_items[save_location_items.length-1]['bottom']
+
+
+        console.warn("@@@@@@@    top=%d  bottom=%d  left=%d right=%d ", top, bottom, th_x_poz_list[0] ,th_x_poz_list[1])
+
 
         var total_col_list = []
         for (var location_item of save_location_items){

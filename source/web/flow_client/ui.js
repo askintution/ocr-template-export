@@ -8,7 +8,7 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 templateList:[],
-                current_template_name: 'h001',
+                current_template_name: 'v001',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -106,7 +106,7 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
          //step 2.  找到行划分
         row_poz_list =  find_split_row_poz_list_vertical(thItems, row_max_height)
 
-        table_row_list = split_td_by_col_row_vertical(thItems, col_poz_list, row_poz_list)
+        table_row_list = split_td_by_col_row_vertical( col_poz_list, row_poz_list)
 
     }
 
