@@ -391,6 +391,9 @@ function create_split_thItems_line(box, col_num,  row_max_height){
     line_width = box['right'] - box['left']
     line_top = box['top']
     line_left = box['left']
+    if(line_left <=1 ){
+        line_left = 2
+    }
     console.log("     create_split_thItems_line  col_num: [%d]  row_max_height:  [%d]", col_num , row_max_height  )
 
     col_width = line_width / col_num

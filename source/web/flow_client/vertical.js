@@ -104,75 +104,106 @@ function merge_td_text_by_box_block_type(box){
 */
 function find_th_items_from_location_item_vertical(save_location_items, th_x_poz_list){
 
-
+        var total_th_item_list = []
         var error_range = 50  // 左右误差范围
         save_location_items.sort(sort_block_by_y);
 
-        var top  = save_location_items[0]['top']
 
+
+        var first_item = save_location_items[0]
+
+        var first_item_list = []
+        for(var i=0; i<vue.blockItemList.length; i++ ){
+            var _blockItem = vue.blockItemList[i]
+            if(_blockItem['text'] == first_item['text']
+                 && _blockItem['x'] > first_item['left'] - error_range
+                 && _blockItem['x'] < first_item['right'] + error_range){
+                 first_item_list.push(_blockItem)
+//                 print_block_item(_blockItem)
+
+             }
+        }
+
+
+
+        var top  = save_location_items[0]['top']
         var bottom = save_location_items[save_location_items.length-1]['bottom']
 
 
-        console.warn("@@@@@@@    top=%d  bottom=%d  left=%d right=%d ", top, bottom, th_x_poz_list[0] ,th_x_poz_list[1])
-
-
-        var total_col_list = []
-        for (var location_item of save_location_items){
-//            console.log("************   ", JSON.stringify(location_item))
-            var col_list = []
-            for(var _blockItem of  vue.blockItemList){
-
-                if(_blockItem['raw_block_type'] == "LINE" ){
-                     continue
-                }
-
-                if(_blockItem['text'] == location_item['text']
-                    && _blockItem['x'] > location_item['left'] - error_range
-                    && _blockItem['x'] < location_item['right'] + error_range){
-//                    console.log(" [%s] [%s]  [x=%d, y=%d] ", _blockItem['id'], _blockItem['text'] , _blockItem['x'] ,  _blockItem['y'] )
-                    col_list.push(_blockItem)
-
-                }
-            }
-            col_list.sort(sort_block_by_top)
-            total_col_list.push(col_list)
-        }
-
-
-        var total_th_item_list = []
-//        console.log("----------- 按照第一行寻找行")
-        // 按照第一行寻找行
-        for( var col_item of total_col_list[0]){
-
-            var th_item_list = []
-            var top = col_item['top'] - error_range
-            var bottom = col_item['bottom'] + error_range
-
-            th_item_list.push(col_item)
-            console.log("---- [%s] [%s]  [x=%d, y=%d] ", col_item['id'], col_item['text'] , col_item['x'] ,  col_item['y'] )
-
-
-            for(var j=1; j< total_col_list.length; j++ ){
-
-                for(var temp_col_item of total_col_list[j]){
-
-                    if(temp_col_item['y'] > top && temp_col_item['y']< bottom ){
-                        th_item_list.push(temp_col_item)
-                    }
-                }
-            }
-
-            if (th_item_list.length == save_location_items.length){
-                for(var _blockItem of th_item_list){
-                    _blockItem['blockType'] = 1
-                }
+        for(var first_item of first_item_list){
+            var th_item_list = find_target_block_item_list(first_item, save_location_items)
+            if(th_item_list != null){
                 total_th_item_list.push(th_item_list)
-            }else {
-                console.warn("%%%%%%%%%%%%%%   save_location_items=%d        th_item_list=%d", save_location_items.length, th_item_list.length)
             }
+        }
+
+        return total_th_item_list
+
+
+}
+
+function find_target_block_item_list(first_item, save_location_items){
+
+
+    var target_block_item_list = []
+    target_block_item_list.push(first_item)
+    print_block_item('first block ' , first_item)
+    print_block_item('save  block ' , save_location_items[0])
+    var del_x = first_item['left'] - save_location_items[0]['left']
+    var del_y = first_item['top'] - save_location_items[0]['top']
+
+    console.log("###### del_x:%d   del_y: %d", del_x, del_y)
+
+    for(var i=1; i<save_location_items.length; i++ ){
+
+        var target_blockItem = {}
+        target_blockItem['top'] = save_location_items[i]['top'] + del_y
+        target_blockItem['bottom'] = save_location_items[i]['bottom'] + del_y
+
+        target_blockItem['left'] = save_location_items[i]['left'] + del_x
+        target_blockItem['right'] = save_location_items[i]['right'] + del_x
+        target_blockItem['text'] = save_location_items[i]['text']
+        target_blockItem['id'] = save_location_items[i]['id']
+
+        var new_block_item =  find_block_item_in_box(target_blockItem)
+
+        if(new_block_item == null){
+            return null
+        }
+        target_block_item_list.push(new_block_item)
+    }
+
+    if(target_block_item_list.length == save_location_items.length){
+        for (var targetItem of target_block_item_list){
+            targetItem['blockType'] = 1
+        }
+
+        return target_block_item_list
+    }
+
+    return null
+}
+
+
+function find_block_item_in_box(target_blockItem){
+
+    var error_range = 50
+    print_block_item("target_blockItem------", target_blockItem)
+    for(var _blockItem of  vue.blockItemList){
+
+        if(_blockItem['text'] == target_blockItem['text']
+            && _blockItem['x'] > target_blockItem['left'] - error_range
+            && _blockItem['x'] < target_blockItem['right'] + error_range
+            && _blockItem['y'] > target_blockItem['top'] - error_range
+            && _blockItem['y'] < target_blockItem['bottom'] + error_range){
+
+            print_block_item("****** ", _blockItem)
+            return _blockItem
 
         }
-        return total_th_item_list
+    }
+
+    return null;
 
 
 }

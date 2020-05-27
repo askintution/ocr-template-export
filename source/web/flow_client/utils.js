@@ -148,7 +148,7 @@ function load_data_from_local(template_name){
     var tableBlockList = []
     for (var tableBlock of save_tableBlockList){
 
-        console.log("---- table_name ", tableBlock['table_name'])
+//        console.log("---- table_name ", tableBlock['table_name'])
         save_location_items = tableBlock['save_location_items']
 
 
@@ -164,7 +164,7 @@ function load_data_from_local(template_name){
 //            --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
 
         if(total_th_item_list == null || total_th_item_list.length == 0){
-            console.error("----------------- continue ")
+            console.warn("----------------- continue ")
             continue
         }
 

@@ -357,6 +357,8 @@ function save_template(){
         localStorage.setItem(LOCAL_SAVE_NAME_TEMPLATE_LIST, JSON.stringify(template_list));
     }
 
+    show_message("模板创建成功  ")
+
 }
 
 

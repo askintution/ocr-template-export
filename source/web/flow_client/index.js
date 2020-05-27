@@ -77,7 +77,7 @@ function parse_data_by_page(page, margin_document_top){
     // 将所有'行'的元素取出来
     for (i =0 ; i< data['Blocks'].length ; i++){
         if(data['Blocks'][i]['Page'] == page  &&
-            (data['Blocks'][i]['BlockType']=='LINE' || data['Blocks'][i]['BlockType']=='WORD' )){
+            data['Blocks'][i]['BlockType']=='WORD' ){
             blockList[index] = data['Blocks'][i]
             index++
         }
@@ -237,9 +237,7 @@ function draw_block_inside(blockItem){
 
 function click_item(blockItem){
 
-    console.log('id=%s,  [x=%f, y=%f] [top=%f ,left=%f, bottom=%f, right=%f] [%s]  ',
-               blockItem['id'], blockItem['x'], blockItem['y'],blockItem['top'],
-               blockItem['left'],blockItem['bottom'],blockItem['right'], blockItem['text'] )
+    print_block_item("click_item", blockItem)
 
 }
 

@@ -135,3 +135,10 @@ function sort_block_by_left(a,b) {
 function sort_block_by_top(a,b) {
     return a['top']-b['top'];
 }
+
+function print_block_item(message, _blockItem){
+
+    console.log("[%s] [%s] [%s]  [top=%d, bottom=%d]  [left=%d, right=%d]", message,  _blockItem['id'], _blockItem['text'] ,
+                      _blockItem['top'] ,  _blockItem['bottom'] ,_blockItem['left'] ,  _blockItem['right'] )
+
+}
