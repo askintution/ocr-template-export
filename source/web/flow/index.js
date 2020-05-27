@@ -215,7 +215,6 @@ function draw_block_inside(blockItem){
      var strokeStyle = 'blue'
      if(blockItem['blockType'] ==1){  //1 定位元素
         strokeStyle="red";
-        clear_block_item_in_canvas(blockItem)
      }
 
     $('#myCanvas').drawRect({

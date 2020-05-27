@@ -103,10 +103,10 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
 
     }else {
         col_poz_list = find_table_items_by_th_items_vertical(thItems, th_x_poz_list)
-                    //step 2.  找到行划分
-        row_poz_list =  find_split_row_poz_list_vertical(col_poz_list[0], row_max_height)
+         //step 2.  找到行划分
+        row_poz_list =  find_split_row_poz_list_vertical(thItems, row_max_height)
 
-        table_row_list = split_td_by_col_row_vertical( col_poz_list, row_poz_list)
+        table_row_list = split_td_by_col_row_vertical(thItems, col_poz_list, row_poz_list)
 
     }
 
@@ -121,7 +121,7 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
 根据行和列的值划分表格
 */
 
-function split_td_by_col_row( col_poz_list, row_poz_list){
+function split_td_by_col_row(col_poz_list, row_poz_list){
 
 
     var table_row_list = []

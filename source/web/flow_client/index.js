@@ -200,7 +200,10 @@ function draw_block_inside(blockItem){
         return
     }
 
-     var strokeStyle = 'blue'
+    var strokeStyle = 'blue'
+    if(blockItem['blockType'] ==1){  //1 定位元素
+       strokeStyle="red";
+    }
 
 
     $('#myCanvas').drawRect({
@@ -313,7 +316,7 @@ function draw_single(col_poz_list, row_poz_list){
 
     }
 
-    if(row_poz_list.length>2){
+    if(row_poz_list.length>1){
         for(var j=1; j< row_poz_list.length; j++){
             $('#myCanvas').drawLine({
                   layer: true,

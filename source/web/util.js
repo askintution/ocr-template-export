@@ -118,3 +118,20 @@ function load_template_list(){
 
     return template_list
 }
+
+
+/**
+对 表头列元素进行排序
+*/
+function sort_block_by_x(a,b) {
+    return a['x']-b['x'];
+}
+function sort_block_by_y(a,b) {
+    return a['y']-b['y'];
+}
+function sort_block_by_left(a,b) {
+    return a['left']-b['left'];
+}
+function sort_block_by_top(a,b) {
+    return a['top']-b['top'];
+}

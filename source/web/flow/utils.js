@@ -159,20 +159,20 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
     blockItem['y'] = parseInt((polyArray[2]['y'] + polyArray[0]['y']) / 2.0)
 }
 
-function clear_block_item_in_canvas(blockItem){
-    $('#myCanvas').clearCanvas({
-          x: blockItem['x']-1, y: blockItem['y']-1,
-          width: blockItem['width']+3,
-          height: blockItem['height']+3
-    });
-
-    var c=document.getElementById("myCanvas");
-    var ctx=c.getContext("2d");
-    ctx.beginPath();
-    ctx.clearRect(blockItem['left']-1,blockItem['top']-1,blockItem['width']+3,blockItem['height']+3);
-    ctx.stroke();
-
-}
+//function clear_block_item_in_canvas(blockItem){
+//    $('#myCanvas').clearCanvas({
+//          x: blockItem['x']-1, y: blockItem['y']-1,
+//          width: blockItem['width']+3,
+//          height: blockItem['height']+3
+//    });
+//
+//    var c=document.getElementById("myCanvas");
+//    var ctx=c.getContext("2d");
+//    ctx.beginPath();
+//    ctx.clearRect(blockItem['left']-1,blockItem['top']-1,blockItem['width']+3,blockItem['height']+3);
+//    ctx.stroke();
+//
+//}
 
 /**
 获取一个表头几个元素的， 坐标位置， top  left  right  height
@@ -220,15 +220,6 @@ function  get_thItems_box(thItems, th_count){
     return box
 }
 
-/**
-对 表头列元素进行排序
-*/
-function sort_block_by_x(a,b) {
-    return a['x']-b['x'];
-}
-function sort_block_by_y(a,b) {
-    return a['y']-b['y'];
-}
 /**
 显示错误消息
 */

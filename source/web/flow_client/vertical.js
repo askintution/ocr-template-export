@@ -1,19 +1,70 @@
 
-
+/**
+扎到col_poz_list
+*/
 function find_table_items_by_th_items_vertical(thItems, th_x_poz_list){
-    console.log("--------------------find_table_items_by_th_items_vertical "   )
-    return []
 
-}
-                    //step 2.  找到行划分
-function find_split_row_poz_list_vertical(col_poz, row_max_height){
-    console.log("--------------------find_split_row_poz_list_vertical "   )
-    return []
+    var col_poz = {'left':th_x_poz_list[0], 'right': th_x_poz_list[1]}
+    var col_poz_list = []
+    col_poz_list.push(col_poz)
+
+    return col_poz_list
 }
 
-function split_td_by_col_row_vertical( col_poz_list, row_poz_list){
-    console.log("--------------------split_td_by_col_row_vertical "   )
-    return []
+
+/***
+//step 2.  找到行划分
+*/
+function find_split_row_poz_list_vertical(thItems, row_max_height){
+
+    var line_error_rate = 15
+    thItems.sort(sort_block_by_y);
+
+    var new_item_poz_list = []
+    new_item_poz_list.push(thItems[0]['top'])
+    for(var i=1; i<thItems.length; i++){
+
+        if( Math.abs(thItems[i]['top'] - new_item_poz_list[new_item_poz_list.length-1]) > line_error_rate ){
+            new_item_poz_list.push(thItems[i]['top'])
+        }
+    }
+
+    new_item_poz_list.push(new_item_poz_list[new_item_poz_list.length-1] +
+                    parseInt(row_max_height))
+    console.log("new_th_item_list: ", JSON.stringify(new_item_poz_list ))
+
+
+    var row_poz_list = []
+    for(var j=1; j< new_item_poz_list.length; j++ ){
+
+        var row_poz = {'top':new_item_poz_list[j-1], 'bottom':new_item_poz_list[j]}
+        row_poz_list.push(row_poz)
+    }
+
+    console.log("row_poz_list: ", JSON.stringify(row_poz_list ))
+    return row_poz_list
+}
+
+/*
+* 找出表格元素
+*/
+function split_td_by_col_row_vertical(thItems, col_poz_list, row_poz_list){
+
+      var table_row_list = []
+        for(var i=0; i<row_poz_list.length; i++ ){
+            var row = row_poz_list[i]
+
+            var col = col_poz_list[0]
+            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
+            var box = {'left': col['left'], 'right': col['right'] ,
+                        'top': row['top'], 'bottom': row['bottom'] }
+
+            var td_text_list = merge_td_text_by_box_block_type(box)
+
+            table_row_list.push(td_text_list)
+        }
+
+        return table_row_list
 
 }
 
@@ -98,40 +149,6 @@ function create_vertical_table_template(table_block_id){
 
 }
 
-/**
-找到划分行的y 坐标
-把所有元素 按照y排序， 每行取一个元素
-*/
-function  find_first_block_in_line(thItems){
-    var line_error_rate = 15
-    thItems.sort(sort_block_by_y);
-
-    var new_item_poz_list = []
-    new_item_poz_list.push(thItems[0]['top'])
-    for(var i=1; i<thItems.length; i++){
-
-        if( Math.abs(thItems[i]['top'] - new_item_poz_list[new_item_poz_list.length-1]) > line_error_rate ){
-            new_item_poz_list.push(thItems[i]['top'])
-        }
-    }
-
-    new_item_poz_list.push(new_item_poz_list[new_item_poz_list.length-1] +
-                    parseInt(vue.currentTableBlock['row_max_height']))
-    console.log("new_th_item_list: ", JSON.stringify(new_item_poz_list ))
-
-
-    var row_poz_list = []
-    for(var j=1; j< new_item_poz_list.length; j++ ){
-
-        var row_poz = {'top':new_item_poz_list[j-1], 'bottom':new_item_poz_list[j]}
-        row_poz_list.push(row_poz)
-    }
-
-
-
-    console.log("row_poz_list: ", JSON.stringify(row_poz_list ))
-    return row_poz_list
-}
 
 /**
 划分行内元素
@@ -172,4 +189,37 @@ function find_block_list_in_box(box){
    }
 
     return block_list
+}
+
+
+
+/**
+根据 坐标  找到word 元素, 并且合并文本内容,
+并且将这些元素拆分
+*/
+function merge_td_text_by_box_block_type(box){
+
+
+   var td_text_th = ''   // 定位元素
+   var td_text = ''      // 普通元素
+   for(var blockItem of vue.blockItemList){
+        if (blockItem['raw_block_type'] =='LINE'){
+            continue
+        }
+        if ( blockItem['x'] > box['left'] && blockItem['x']<= box['right']
+           &&  blockItem['y']> box['top'] && blockItem['y'] <= box['bottom']){
+
+            if(blockItem['blockType'] == 0){
+                td_text +=  ' '+ blockItem['text']
+            }else {
+                td_text_th += ' '+ blockItem['text']
+            }
+
+        }
+   }
+   var td_text_list = []
+    td_text_list.push(td_text_th)
+    td_text_list.push(td_text)
+
+   return td_text_list
 }

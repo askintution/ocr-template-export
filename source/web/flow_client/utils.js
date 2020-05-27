@@ -131,20 +131,6 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
 }
 
 /**
-对 表头列元素进行排序
-*/
-function sort_block_by_x(a,b) {
-    return a['x']-b['x'];
-}
-function sort_block_by_left(a,b) {
-    return a['left']-b['left'];
-}
-function sort_block_by_top(a,b) {
-    return a['top']-b['top'];
-}
-
-
-/**
 显示错误消息
 */
 function show_message(message){
@@ -222,6 +208,7 @@ function find_th_items_from_location_item(save_location_items){
                     && _blockItem['x'] < location_item['right'] + error_range){
 //                    console.log(" [%s] [%s]  [x=%d, y=%d] ", _blockItem['id'], _blockItem['text'] , _blockItem['x'] ,  _blockItem['y'] )
                     col_list.push(_blockItem)
+                    _blockItem['blockType'] = 1
                 }
             }
             col_list.sort(sort_block_by_top)
