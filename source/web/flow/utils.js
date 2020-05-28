@@ -303,6 +303,8 @@ function save_template(){
         table_block_item['save_location_items'] =  tableBlock['save_location_items']
         table_block_item['table_name'] =  tableBlock['table_name']
         table_block_item['table_type'] =  tableBlock['table_type']
+        table_block_item['main_col_num'] =  tableBlock['main_col_num']
+
 
         table_block_item['th_x_poz_list'] =  tableBlock['th_x_poz_list']
 

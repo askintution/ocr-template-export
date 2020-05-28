@@ -62,7 +62,12 @@ function get_data(url){
         $("#loading-icon").hide()
         init_current_field()
 
-    })
+    }).success(function() { console.log("second success"); })
+            .error(function() {
+              console.error("error");
+              $("#loading-icon").hide()
+                  show_message("文件加载失败 请检查"+url)
+              })
     var canvas=document.getElementById("myCanvas");
     canvas.onmousedown = function(e){
 

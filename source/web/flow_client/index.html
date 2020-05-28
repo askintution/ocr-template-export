@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="../jcanvas.min.js"></script>
 </head>
-<body>
+<body style="width:1800px;margin:0 auto;">
 
 <div class="container-fluid" id="main" style="width:100%">
 
@@ -45,7 +45,7 @@
 
                     <input class="form-control mr-sm-4" style="width:700px;font-size:12px"  id="json_url_input"  type="search" v-model="data_url"
                            placeholder="填写AWS Textract 生成的json，用于生成新的模板" aria-label="Search">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="button" v-on:click="get_json()" >测试模板</button>
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="button" v-on:click="get_json()" >选择解析后的json文件</button>
 
 
                     <div class="spinner-grow text-dark" role="status" id="loading-icon">
@@ -64,21 +64,24 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-7" class="overflow-auto" id="myCanvasParent" >
+        <div class="col-md-7" class="overflow-auto" id="myCanvasParent">
             <canvas id="myCanvas" width="960" height="1200"
                   style="border:1px solid #000000;">
         </canvas>
         </div>
 
         <!-- Right Start -->
-        <div class="col-md-5"  >
+        <div class="col-md-5"   >
 
-
+            <div>
+                <span>选择模板进行匹配</span>
             <select class="custom-select my-1 mr-sm-2" id="inlineFormCustomSelectPref"  v-model="current_template_name"  @change='select_template_display' >
                 <option selected value="">选择OCR模板</option>
                 <option v-for='item in templateList' v-text="item"></option>
 
             </select>
+
+            </div>
 
 
             <div v-for="tableBlock of tableBlockList"   class="shadow-sm p-3 mb-2 bg-white rounded">

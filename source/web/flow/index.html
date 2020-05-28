@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="../jcanvas.min.js"></script>
 </head>
-<body>
+<body style="width:1800px;margin:0 auto;">
 
 <div class="container-fluid" id="main" style="width:100%">
 
@@ -60,14 +60,14 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-8" class="overflow-auto" id="myCanvasParent" >
+        <div class="col-md-7" class="overflow-auto" id="myCanvasParent" >
             <canvas id="myCanvas" width="960" height="1200"
                   style="border:1px solid #000000;">
         </canvas>
         </div>
 
         <!-- Right Start -->
-        <div class="col-md-4">
+        <div class="col-md-5">
 
             <div>
                 <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加 横向 表格模板</button>
@@ -122,6 +122,14 @@
                                 <div class="input-group-text">列数</div>
                             </div>
                             <input type="number" οninput="value=value.replace(/[^\d]/g,'')"  class="form-control"  v-model="tableBlock.th_count"  placeholder="列数">
+                        </div>
+                    </div>
+                    <div class="col-auto" style="width:150px">
+                        <div class="input-group mb-1">
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">主列</div>
+                            </div>
+                            <input type="number" οninput="value=value.replace(/[^\d]/g,'')"  class="form-control"  v-model="tableBlock.main_col_num"  placeholder="主列">
                         </div>
                     </div>
                     <div class="col-auto">

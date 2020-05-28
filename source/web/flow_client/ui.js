@@ -8,7 +8,7 @@ $(function(){
                 pageCount:0,
                 tableBlockList:[],
                 templateList:[],
-                current_template_name: 'debug001',
+                current_template_name: 'list001',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -33,8 +33,8 @@ Vue  对象的结构
 --tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
     --id  //text
-    --name
     --table_type                    //0: 横向表格   1: 纵向表格
+    --main_col_num                  //主列序号
     --th_count                      //【用户输入】 【需要保存的内容】   实际表格列数， 用户自己填入， 用户生成分割线
     --row_max_height                //【用户输入】 【需要保存的内容】   用户输入的行最大的可能高度， 辅助进行识别
     --save_location_items           // 【需要保存的内容】
@@ -64,7 +64,12 @@ function get_data(url){
 
         select_template_display()
 
-    })
+    }).success(function() { console.log("second success"); })
+            .error(function() {
+              console.error("error");
+              $("#loading-icon").hide()
+                  show_message("文件加载失败 请检查"+url)
+              })
 
 }
 
@@ -83,6 +88,12 @@ function select_template_display(){
 function create_table_template(thItems, th_x_poz_list , tableBlock){
 
     var row_max_height =  tableBlock['row_max_height']
+
+    var main_col_num =  tableBlock['main_col_num']
+    if(main_col_num == null || main_col_num== undefined){
+        main_col_num = 0
+    }
+
     thItems.sort(sort_block_by_x);
 
     console.log(th_x_poz_list)
@@ -97,7 +108,9 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
     if(tableBlock['table_type'] == 0){
         col_poz_list = find_table_items_by_th_items(thItems, th_x_poz_list)
             //step 2.  找到行划分
-        row_poz_list =  find_split_row_poz_list(col_poz_list[0], row_max_height)
+
+            //TODO:
+        row_poz_list =  find_split_row_poz_list(col_poz_list[main_col_num], row_max_height)
 
         table_row_list = split_td_by_col_row( col_poz_list, row_poz_list)
 
@@ -110,7 +123,6 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
 
     }
 
-    console.log("********** ", table_row_list)
     return {'row_poz_list': row_poz_list, 'col_poz_list':col_poz_list, 'table_row_list': table_row_list }
 
 

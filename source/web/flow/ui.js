@@ -67,6 +67,7 @@ Vue  对象的结构
   --tableBlock{}
     --id  //text
     --table_name                    // 表格名称
+    --main_col_num                  //主列序号
     --table_type                    //0: 横向表格   1: 纵向表格
     --thItems[]                     //【用户输入】 模板的定位元素， 用户点击选择的Block  首位两端的就可以， 最少两个
                                     // [ {left, right, top, bottom}, {left, right, top, bottom}]
@@ -94,7 +95,13 @@ function get_data(url){
         vue.data_url = url
         $("#loading-icon").hide()
 
-    })
+    }).success(function() { console.log("second success"); })
+      .error(function() {
+        console.error("error");
+        $("#loading-icon").hide()
+            show_message("文件加载失败 请检查"+url)
+        })
+
 
 }
 
@@ -117,6 +124,7 @@ function add_table_block(){
     tableBlock['table_name'] = 'tb_name_'+table_item_index
     tableBlock['th_count'] = 0                      //默认表格列数
     tableBlock['row_max_height'] = 60
+    tableBlock['main_col_num'] = 1
     tableBlock['status'] = 0
     vue.currentTableBlock = tableBlock
     vue.tableBlockList.push(tableBlock)
@@ -168,11 +176,15 @@ function create_table_split_th(table_block_id){
         show_message("定位元素最少为2个")
         return ;
     }
-
     if(vue.currentTableBlock['th_count']<2){
         show_message("列数最少为2个")
         return ;
 
+    }
+    var  main_col_num = vue.currentTableBlock['main_col_num'] -1
+    if(main_col_num<=0 || main_col_num >= vue.currentTableBlock['th_count'] ){
+        show_message("主列序号设置不合理， 范围["+1+" -"+vue.currentTableBlock['th_count']+"]")
+        return ;
     }
 
     if(vue.currentTableBlock['id'] != table_block_id){
@@ -225,6 +237,13 @@ function create_table_template(table_block_id){
         return ;
     }
 
+    var  main_col_num = vue.currentTableBlock['main_col_num'] -1
+    if(main_col_num<=0 || main_col_num >= vue.currentTableBlock['th_count'] ){
+        show_message("主列序号设置不合理， 范围["+1+" -"+vue.currentTableBlock['th_count']+"]")
+        return ;
+
+    }
+
 
     vue.currentTableBlock['status'] =2
     thItems.sort(sort_block_by_x);
@@ -233,8 +252,9 @@ function create_table_template(table_block_id){
     var tableItems = new Array()
     var col_poz_list = find_table_items_by_th_items(thItems)
 
-    //step 2.  找到行划分  TODO:  可以让用户自己选按照哪一列划分行， 目前选第一列， 因为一般情况下第一列不为空
-    var row_poz_list =  find_split_row_poz_list(col_poz_list[0])
+    //step 2.  找到行划分 用户自己选按照哪一列划分行， 默认选第一列， 因为一般情况下第一列不为空
+    console.error("main_col_num     ",  main_col_num)
+    var row_poz_list =  find_split_row_poz_list(col_poz_list[main_col_num])
 
     //step 3. 利用行列 进行拆分
     vue.currentTableBlock['col_poz_list'] = col_poz_list
