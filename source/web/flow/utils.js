@@ -162,8 +162,8 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
 */
 function  get_thItems_box(thItems, th_count){
 
-    if(thItems.length <2){
-        show_message(" 至少选择两列 ")
+    if(thItems.length <1){
+        show_message(" 至少选择一个定位元素 ")
         return ;
     }
 

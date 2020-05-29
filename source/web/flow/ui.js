@@ -183,7 +183,6 @@ function create_table_split_th(table_block_id){
 
     }
     var  main_col_num = vue.currentTableBlock['main_col_num'] -1
-    console.error( vue.currentTableBlock['th_count'], main_col_num )
     if(main_col_num<0 || main_col_num >= vue.currentTableBlock['th_count'] ){
         show_message("主列序号设置不合理， 范围["+1+" -"+vue.currentTableBlock['th_count']+"]")
         return ;

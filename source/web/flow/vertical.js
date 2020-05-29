@@ -48,6 +48,7 @@ function create_vertical_table_split_th(table_block_id){
         show_message("请确认行高是否正确 ")
         return;
     }
+    redraw_canvas()
     create_split_thItems_line(box, 1,  row_max_height)
 
 
