@@ -51,7 +51,7 @@ function parse_data(data){
     console.log('Canvas size=[%f , %f]  document height %f ', page_width, document_zoom_out_height,  document_page_height)
     vue.blockItemList = blockItemList
 
-    console.log("----blockItemList length:   ", vue.blockItemList.length)
+    console.log("Block item count:   ", vue.blockItemList.length)
      //对元素进行缩放  如果是WORD 元素， 找到他们的父元素
      for(i =0 ; i<blockItemList.length; i++){
             var _blockItem = blockItemList[i]
@@ -92,7 +92,7 @@ function parse_data_by_page(page, margin_document_top){
 
     tan = (pointB['Y'] - pointA['Y'])/((pointB['X'] - pointA['X']))
     var theta = Math.atan(tan)
-    console.log("PageCount=%d,   tan = %f,  theta =   %f   ", vue.pageCount , tan, theta)
+    console.log("PageCount=%d,   tan = %f,  theta =   %f   ", page , tan, theta)
 
     //反方向旋转Theta
     matrix = [Math.cos(theta), Math.sin(theta), -1 * Math.sin(theta), Math.cos(theta)]

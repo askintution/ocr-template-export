@@ -131,7 +131,7 @@ function init_page_margin_block(blockItemList){
         page_margin['height_rate'] = 1.0/(page_bottom - page_top);
         page_margin['width_rate'] =  1.0/(page_right - page_left)  ;
 
-        console.log("page_margin",  JSON.stringify(page_margin))
+//        console.log("page_margin",  JSON.stringify(page_margin))
         return page_margin;
 
 }
