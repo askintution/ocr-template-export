@@ -71,8 +71,8 @@
         <div class="col-md-5">
 
             <div>
-                <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加 横向 表格模板</button>
-                <button type="button" class="btn btn-primary" v-on:click="add_vertical_table_block()">添加 纵向 表格模板</button>
+                <button type="button" class="btn btn-primary" v-on:click="add_table_block()">添加 水平 表格模板</button>
+                <button type="button" class="btn btn-primary" v-on:click="add_vertical_table_block()">添加 垂直 表格模板</button>
 <!--                <button type="button" class="btn btn-primary" v-on:click="add_field()">添加字段</button>-->
             </div>
 
@@ -81,7 +81,7 @@
 
 
 
-                <b>横向表格</b>
+                <b>水平表格</b>
                 <ul>
                     <li><small>选择需要定位的表头元素</small></li>
                     <li><small>填写列数，和每行最大高度</small></li>
@@ -90,7 +90,7 @@
                 </ul>
 
 
-                <b>横向表格</b>
+                <b>垂直表格</b>
                 <ul>
                     <li><small>选择定位的表头元素</small></li>
                     <li><small>填写最后一个行的高度</small></li>
@@ -104,7 +104,7 @@
 
                 <!--  横向表格 开始-->
                 <template  v-if="tableBlock.table_type==0">
-                <span>横向表格</span>  <small v-text="tableBlock.id"  ></small>
+                <span>水平表格</span>  <small v-text="tableBlock.id"  ></small>
                 <button style="margin-left:175px;margin-bottom:5px" type="button" class="btn btn-light" v-on:click="delete_table_block($event)"
                         v-bind:name="tableBlock.id" >删除表格</button>
 
@@ -163,7 +163,7 @@
 
                 <!--  纵向表格开始-->
                 <template  v-if="tableBlock.table_type==1">
-                    <span >纵向表格</span>  <small v-text="tableBlock.id"  ></small>
+                    <span >垂直表格</span>  <small v-text="tableBlock.id"  ></small>
                     <button style="margin-left:175px;margin-bottom:5px" type="button" class="btn btn-light"
                             v-on:click="delete_table_block($event)"
                             v-bind:name="tableBlock.id" >删除表格</button>

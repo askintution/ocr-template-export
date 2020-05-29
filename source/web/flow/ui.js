@@ -254,7 +254,6 @@ function create_table_template(table_block_id){
     var col_poz_list = find_table_items_by_th_items(thItems)
 
     //step 2.  找到行划分 用户自己选按照哪一列划分行， 默认选第一列， 因为一般情况下第一列不为空
-    console.error("main_col_num     ",  main_col_num)
     var row_poz_list =  find_split_row_poz_list(col_poz_list[main_col_num])
 
     //step 3. 利用行列 进行拆分
@@ -443,7 +442,7 @@ function find_split_row_poz_list(blockItem){
     if(row_y_pos_list.length ==0 ){
         console.log('未找到表格元素')
     }else if(row_y_pos_list.length == 1){
-        //150 经验值， 一个表格最大的高度
+        // 一个表格最大的高度
         row_poz_list.push({'top':row_y_pos_list[0], 'bottom':row_y_pos_list[0] + row_max_height })
     }else {
 

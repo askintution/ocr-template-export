@@ -219,7 +219,7 @@ function draw_block_inside(blockItem){
         }
     });
 
-    var textStrokeStyle = 'green'
+    var textStrokeStyle = 'blue'
 
     if(parseFloat(blockItem['confidence']) < parseFloat(vue.confidence_threshold) ){
         textStrokeStyle="red";

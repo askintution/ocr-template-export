@@ -10,7 +10,7 @@ $(function(){
                 confidence_threshold: 99,  //文本的置信度， 低于这个 显示黄色
                 tableBlockList:[],
                 templateList:[],
-                current_template_name: 'single001',
+                current_template_name: 'debug003',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -94,7 +94,7 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
 
     var row_max_height =  tableBlock['row_max_height']
 
-    var main_col_num =  tableBlock['main_col_num']
+    var main_col_num =  tableBlock['main_col_num'] -1
     if(main_col_num == null || main_col_num== undefined){
         main_col_num = 0
     }
@@ -114,7 +114,6 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
         col_poz_list = find_table_items_by_th_items(thItems, th_x_poz_list)
             //step 2.  找到行划分
 
-            //TODO:
         row_poz_list =  find_split_row_poz_list(col_poz_list[main_col_num], row_max_height)
 
         table_row_list = split_td_by_col_row( col_poz_list, row_poz_list)
@@ -148,12 +147,12 @@ function split_td_by_col_row(col_poz_list, row_poz_list){
         for(var j=0; j< col_poz_list.length; j++ ){
             var col = col_poz_list[j]
 
-            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
+//            console.log("[left=%d,  right=%d, top=%d, bottom=%d]" ,  col['left'], col['right'] , row['top'], row['bottom']  )
             var box = {'left': col['left'], 'right': col['right'] ,
                         'top': row['top'], 'bottom': row['bottom'] }
 
             var text = merge_td_text_by_box_poz(box)
-            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, text )
+//            console.log(  "row: [%d]  col: [%d]  ----  %s", i, j, text )
             table_col_list.push(text)
         }
 
@@ -278,8 +277,8 @@ function find_split_column_poz_list(thItems){
 function find_split_row_poz_list(blockItem, row_max_height){
 
     var row_max_height = parseInt(row_max_height ) - blockItem['height']
-//    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
-//    blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
+    console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
+    blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
 
     var last_item_y = blockItem['bottom']
     var row_y_pos_list = new Array()
@@ -317,9 +316,9 @@ function find_split_row_poz_list(blockItem, row_max_height){
 
     }//end for
 
-//    for(var poz of row_y_pos_list){
-//        console.log(" 找到的 y 坐标 用于划分行---------------- %d ", poz)
-//    }
+    for(var poz of row_y_pos_list){
+        console.log(" 找到的 y 坐标 用于划分行---------------- %d ", poz)
+    }
 
     var row_poz_list = new Array()
     if(row_y_pos_list.length ==0 ){
@@ -336,7 +335,7 @@ function find_split_row_poz_list(blockItem, row_max_height){
         row_poz_list.push({'top':last_y, 'bottom':last_y + row_max_height })
     }
 
-    console.log('row_poz_list  length: %d', row_poz_list.length)
+//    console.log('row_poz_list  length: %d', row_poz_list.length)
 
 //    for(var poz of row_poz_list){
 //            console.log(" 找到的 y 坐标 用于划分行------ [%d   ---    %d] ", poz['top'], poz['bottom'])

@@ -158,7 +158,8 @@ function zoom_layout_block(blockItem, document_zoom_out_height){
 }
 
 /**
-获取一个表头几个元素的坐标位置， top  left  right  height
+获取一个表头几个元素总区域的坐标位置， top  left  right  height
+用于画分割线
 */
 function  get_thItems_box(thItems, th_count){
 
@@ -193,9 +194,9 @@ function  get_thItems_box(thItems, th_count){
 
     var box = {
         th_count: th_count,
-        top: max_top -2,
+        top: max_top -1,
         left: max_left -2,
-        right: max_right + 2,
+        right: max_right + 1,
         bottom: max_bottom + 2
     }
     console.log("get_thItems_box: ", JSON.stringify(box))
