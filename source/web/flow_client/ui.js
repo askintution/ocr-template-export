@@ -6,9 +6,11 @@ $(function(){
             data:{
                 blockItemList:[], //当前页面解析的block元素
                 pageCount:0,
+                enable_edit_text:false,
+                confidence_threshold: 99,  //文本的置信度， 低于这个 显示黄色
                 tableBlockList:[],
                 templateList:[],
-                current_template_name: 'list001',
+                current_template_name: 'single001',
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
                 data:{}
 
@@ -16,6 +18,9 @@ $(function(){
                 get_json:function(){
                     url = $("#json_url_input").val()
                     get_data(url)
+                },
+                change_confidence_threshold:function(){
+                    redraw_canvas()
                 },
                 select_template_display:function(e){
                     select_template_display()

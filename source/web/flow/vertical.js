@@ -133,7 +133,7 @@ function  find_first_block_in_line(thItems){
 
 
 
-    console.log("row_poz_list: ", JSON.stringify(row_poz_list ))
+//    console.error("row_poz_list: ", JSON.stringify(row_poz_list ))
     return row_poz_list
 }
 

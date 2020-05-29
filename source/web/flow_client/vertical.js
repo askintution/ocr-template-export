@@ -121,9 +121,10 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
             var _blockItem = vue.blockItemList[i]
             if(_blockItem['text'] == first_item['text']
                  && _blockItem['x'] > first_item['left'] - error_range
-                 && _blockItem['x'] < first_item['right'] + error_range){
+                 && _blockItem['x'] < first_item['right'] + error_range
+                 ){
                  first_item_list.push(_blockItem)
-//                 print_block_item(_blockItem)
+//                 print_block_item('************** ', _blockItem)
 
              }
         }
@@ -133,6 +134,8 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
 
 
         for(var first_item of first_item_list){
+
+            print_block_item('first_item    ',  first_item)
             var th_item_list = find_target_block_item_list(first_item, save_location_items)
             if(th_item_list != null){
                 total_th_item_list.push(th_item_list)

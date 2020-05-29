@@ -142,6 +142,7 @@ function create_block(block){
 //    封装block 元素， 供页面显示
     var blockItem = {
         id:block['Id'],
+        confidence: block['Confidence'],
         raw_block_type: block['BlockType'],   // LINE or WORD
         newPoly:polyArray,
 //        polyList:block['Geometry']['Polygon'],  // 保存原始左边， 用于计算
@@ -218,10 +219,17 @@ function draw_block_inside(blockItem){
         }
     });
 
+    var textStrokeStyle = 'green'
+
+    if(parseFloat(blockItem['confidence']) < parseFloat(vue.confidence_threshold) ){
+        textStrokeStyle="red";
+    }
+
+
 
    $('#myCanvas').drawText({
      layer: true,
-     fillStyle: '#36c',
+     fillStyle: textStrokeStyle,
      fontSize: '8pt',
      text: blockItem['text'],
      autosave: true,
