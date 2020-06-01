@@ -164,7 +164,7 @@ function load_data_from_local(template_name){
 //            --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
 
         if(total_th_item_list == null || total_th_item_list.length == 0){
-            console.warn("----------------- continue ")
+//            console.warn("----------------- continue ")
             continue
         }
 
@@ -200,6 +200,7 @@ function correct_x_error_range(save_x, real_x , th_x_poz_list){
 
 /**
 根据定位元素， 寻找thItem
+从页面所有元素中， 遍历出定位元素
 */
 function find_th_items_from_location_item(save_location_items){
 
@@ -258,7 +259,7 @@ function find_th_items_from_location_item(save_location_items){
                 }
                 total_th_item_list.push(th_item_list)
             }else {
-                console.error("%%%%%%%%%%%%%%   save_location_items=%d        th_item_list=%d", save_location_items.length, th_item_list.length)
+                console.log("%%%%%%%%%%%%%%   save_location_items=%d        th_item_list=%d", save_location_items.length, th_item_list.length)
             }
 
         }

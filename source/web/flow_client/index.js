@@ -240,7 +240,9 @@ function draw_block_inside(blockItem){
 }
 
 
-
+/**
+点击元素
+*/
 function click_item(blockItem){
     print_block_item("click_item", blockItem)
 }
@@ -260,7 +262,6 @@ function redraw_canvas(){
     }
     draw_split_table_line()
 
-
 }
 
 /**
@@ -278,6 +279,7 @@ function draw_split_table_line(){
             return;
         }
 
+        //目前两种表格画法一致， 以后可以改进， 用不同画法
         for(var total_poz of total_poz_list){
             var col_poz_list = total_poz['col_poz_list']
             var row_poz_list = total_poz['row_poz_list']

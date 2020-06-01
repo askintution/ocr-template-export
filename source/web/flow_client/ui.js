@@ -23,11 +23,8 @@ $(function(){
                     redraw_canvas()
                 },
                 select_template_display:function(e){
-//                    select_template_display()
-//                    redraw_canvas()
                       url = $("#json_url_input").val()
                       get_data(url)
-
                 },
              }
     })
@@ -81,6 +78,9 @@ function get_data(url){
 
 }
 
+/**
+选择模板进行匹配
+*/
 function select_template_display(){
     if(vue.current_template_name == ''){
         return
@@ -115,10 +115,7 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
 
     if(tableBlock['table_type'] == 0){
         col_poz_list = find_table_items_by_th_items(thItems, th_x_poz_list)
-
-        console.error("*************** ", JSON.stringify(col_poz_list))
-            //step 2.  找到行划分
-
+         //step 2.  找到行划分
         row_poz_list =  find_split_row_poz_list(col_poz_list[main_col_num], row_max_height)
 
         table_row_list = split_td_by_col_row( col_poz_list, row_poz_list)
@@ -131,7 +128,7 @@ function create_table_template(thItems, th_x_poz_list , tableBlock){
         table_row_list = split_td_by_col_row_vertical( col_poz_list, row_poz_list)
 
     }
-
+    //table_row_list 要显示的单元格元素
     return {'row_poz_list': row_poz_list, 'col_poz_list':col_poz_list, 'table_row_list': table_row_list }
 
 
@@ -168,107 +165,34 @@ function split_td_by_col_row(col_poz_list, row_poz_list){
 }
 
 
-/**
- 通过分割线找到表头元素
-*/
-function  find_table_items_by_th_items(old_th_items, th_x_poz_list){
 
-    var single_item_list = []  //include word and line block
-    for(var item of old_th_items){
-        single_item_list.push(item)
+/*
+通过分割线找到表头元素
+@Param old_th_items  用户选择的定位元素， 每列最好有一个定位元素， 首位的定位元素必须有
+*/
+function find_table_items_by_th_items(old_th_items,  th_x_poz_list){
+    var col_poz_list = []
+        //寻找在一个区间里面的表头定位元素 [left , right]
+    for (var i=1; i<th_x_poz_list.length ; i++){
+        var new_item = {}
+        new_item['top'] = old_th_items[0]['top']
+        new_item['bottom'] = old_th_items[0]['bottom']
+
+        new_item['left'] = th_x_poz_list[i-1]
+        new_item['right'] = th_x_poz_list[i]
+        new_item['x'] = parseInt((new_item['left'] + new_item['right'])/ 2)
+        new_item['y'] = parseInt((new_item['bottom'] + new_item['top'])/ 2)
+
+        new_item['height'] = new_item['bottom'] - new_item['top']
+        new_item['width'] = new_item['right'] - new_item['left']
+        col_poz_list.push(new_item)
     }
 
-    var item_index = 0
-
-    var col_poz_list = []
-    for (var i=1; i<th_x_poz_list.length ; i++){
-//        console.log(th_x_poz_list[i-1] , th_x_poz_list[i])
-        while(item_index< single_item_list.length){
-
-            var new_item = {}
-            new_item['left'] = single_item_list[item_index]['left']
-            new_item['top'] = single_item_list[item_index]['top']
-            new_item['bottom'] = single_item_list[item_index]['bottom']
-            new_item['text'] =  ''
-
-            for (var j= item_index; j<single_item_list.length; j++  ){
-                console.log(" th_x_poz_list: [%d] item_index  %d , j= [%d]   [%s]", i, item_index , j, single_item_list[j]['text'])
-                if (single_item_list[j]['x'] > th_x_poz_list[i-1]  &&
-                    single_item_list[j]['x'] < th_x_poz_list[i] ){
-                    new_item['text'] += ' '+ single_item_list[j]['text']
-                    new_item['right'] = single_item_list[j]['right']
-
-
-                    if( single_item_list[j]['bottom'] > new_item['bottom'] ){
-                        new_item['bottom'] = single_item_list[j]['bottom']
-                    }
-
-                    if( single_item_list[j]['top'] < new_item['top'] ){
-                        new_item['top'] = single_item_list[j]['top']
-                    }
-                    item_index += 1
-                }else {
-                    break;
-                }
-            }
-
-            new_item['left'] = th_x_poz_list[i-1]
-            new_item['right'] = th_x_poz_list[i]
-            new_item['x'] = parseInt((new_item['left'] + new_item['right'])/ 2)
-            new_item['y'] = parseInt((new_item['bottom'] + new_item['top'])/ 2)
-
-            new_item['height'] = new_item['bottom'] - new_item['top']
-            new_item['width'] = new_item['right'] - new_item['left']
-            console.log("new_item  [%s] x=%d, y=%d left=%d, right=%d, height=%d", new_item['text'],new_item['x'], new_item['y'],
-                new_item['left'], new_item['right'], new_item['height'])
-            col_poz_list.push(new_item)
-            break;
-        }
-    }   //end for
+//    for (var col_poz of col_poz_list){
+//        console.error('col_poz: ', JSON.stringify(col_poz))
+//    }
 
     return col_poz_list
-
-}
-
-
-function find_td_item_x_boundary(column_poz_list, j){
-    var left =0;
-    var right = 0;
-    if(j == 0 ){
-        left = 0;
-        right = column_poz_list[j+1]['start']
-    }else if (j== column_poz_list.length-1){
-        left = column_poz_list[j-1]['end']
-        right = page_width+1
-    }else {
-        left = column_poz_list[j-1]['end']
-        right = column_poz_list[j+1]['start']
-
-    }
-
-    return {'left':left, 'right': right}
-
-}
-
-/**
-进行列分割
-会返回以下格式数据， 用于进行划分表格
-0: {start: 51, end: 79}
-1: {start: 211, end: 274}
-2: {start: 369, end: 411}
-3: {start: 855, end: 907}
-*/
-
-function find_split_column_poz_list(thItems){
-
-
-    var column_x_pos_list = new Array()
-    for(var i=0; i< thItems.length; i++){
-        column_x_pos_list.push({'start':thItems[i]['left'], 'end':thItems[i]['right'] })
-    }
-//    console.log(column_x_pos_list)
-    return column_x_pos_list;
-
 }
 
 /**

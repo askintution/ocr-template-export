@@ -1,6 +1,7 @@
 
 /**
-扎到col_poz_list
+找到col_poz_list
+垂直表格， 只有左右两个范围
 */
 function find_table_items_by_th_items_vertical(thItems, th_x_poz_list){
 
@@ -113,6 +114,7 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
         var first_item = save_location_items[0]
 
         var first_item_list = []
+        //找到符合要求的所有第一个元素， 然后按照第一个元素继续寻找
         for(var i=0; i<vue.blockItemList.length; i++ ){
             if (vue.blockItemList[i]['raw_block_type'] =='LINE'){
                 continue
@@ -124,7 +126,6 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
                  && _blockItem['x'] < first_item['right'] + error_range
                  ){
                  first_item_list.push(_blockItem)
-//                 print_block_item('************** ', _blockItem)
 
              }
         }
@@ -133,6 +134,7 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
         var bottom = save_location_items[save_location_items.length-1]['bottom']
 
 
+        //在一个页面中， 可以找到多个符合要求的表格
         for(var first_item of first_item_list){
 
             print_block_item('first_item    ',  first_item)
@@ -147,6 +149,12 @@ function find_th_items_from_location_item_vertical(save_location_items, th_x_poz
 
 }
 
+/*
+找到第一定位元素以后， 做坐标偏移， 然后依次找出偏移以后的新元素，
+如果都找到了， 就找到了表格， 如果有没有找到的元素， 就说明这个定位元素没有找到指定表格。
+
+实际使用中要主要页面x坐标的误差范围，
+*/
 function find_target_block_item_list(first_item, save_location_items){
 
 
@@ -162,6 +170,7 @@ function find_target_block_item_list(first_item, save_location_items){
     for(var i=1; i<save_location_items.length; i++ ){
 
         var target_blockItem = {}
+        // 根据第一个元素的坐标， 移动自己的坐标， 然后在页面里面进行寻找
         target_blockItem['top'] = save_location_items[i]['top'] + del_y
         target_blockItem['bottom'] = save_location_items[i]['bottom'] + del_y
 
@@ -189,6 +198,9 @@ function find_target_block_item_list(first_item, save_location_items){
     return null
 }
 
+/*
+在指定范围里面寻找一个 blockItem
+*/
 
 function find_block_item_in_box(target_blockItem){
 
@@ -205,11 +217,7 @@ function find_block_item_in_box(target_blockItem){
             && _blockItem['y'] < target_blockItem['bottom'] + error_range){
 
             return _blockItem
-
         }
     }
-
     return null;
-
-
 }
