@@ -56,8 +56,6 @@ function parse_data(data){
      for(i =0 ; i<blockItemList.length; i++){
             var _blockItem = blockItemList[i]
             zoom_layout_block(_blockItem, document_zoom_out_height)
-              //对元素进行缩放  如果是WORD 元素， 找到他们的父元素
-//            find_parent_block_id_by_child(_blockItem)
      }
     // 绘制元素
     redraw_canvas()

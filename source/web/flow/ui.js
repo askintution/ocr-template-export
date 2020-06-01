@@ -13,44 +13,42 @@ $(function(){
                 data:{}
 
              },methods:{
-                get_json:function(){
+                get_json:function(){   // 获取文件 文件保存在S3中
                     url = $("#json_url_input").val()
                     //alert(url)
                     get_data(url)
                 },
-                add_table_block:function(){
+                add_table_block:function(){   //添加水平表格
                     add_table_block()
                 },
-                add_vertical_table_block:function(){
+                add_vertical_table_block:function(){  //添加垂直表格
                     add_vertical_table_block()
                 },
 
 
-                create_table_split_th:function(e){
+                create_table_split_th:function(e){    //添加水平表格分割线
                     table_block_id = e.currentTarget.name
                     create_table_split_th(table_block_id)
                 },
-                create_vertical_table_split_th:function(e){
+                create_vertical_table_split_th:function(e){  //添加垂直表格分割线
                     table_block_id = e.currentTarget.name
                     create_vertical_table_split_th(table_block_id)
                 },
 
 
-                create_table_template:function(e){
+                create_table_template:function(e){          //创建水平表格模板
                     table_block_id = e.currentTarget.name
                     create_table_template(table_block_id)
                 },
-                create_vertical_table_template:function(e){
+                create_vertical_table_template:function(e){  //创建垂直表格模板
                     create_vertical_table_template(table_block_id)
                 },
 
 
-
-
-                save_template:function(){
+                save_template:function(){                    //保存模板
                     save_template()
                 },
-                delete_table_block:function(e){
+                delete_table_block:function(e){             // 删除表格模板
                     table_block_id = e.currentTarget.name
                     delete_table_block(table_block_id)
                 }
@@ -65,14 +63,15 @@ $(function(){
 Vue  对象的结构
 --tableBlockList[]                  //一共发现多少个相同的表格模板
   --tableBlock{}
-    --id  //text
-    --table_name                    // 表格名称
-    --main_col_num                  //主列序号
-    --table_type                    //0: 横向表格   1: 纵向表格
+    --id                            // 【用户输入】【需要保存的内容】
+    --table_name                    // 表格名称 【用户输入】【需要保存的内容】
+    --main_col_num                  //主列序号   【用户输入】【需要保存的内容】
+    --table_type                    // 【用户输入】【需要保存的内容】 0: 横向表格   1: 纵向表格
     --thItems[]                     //【用户输入】 模板的定位元素， 用户点击选择的Block  首位两端的就可以， 最少两个
                                     // [ {left, right, top, bottom}, {left, right, top, bottom}]
     --th_count                      //【用户输入】 【需要保存的内容】   实际表格列数， 用户自己填入， 用户生成分割线
     --row_max_height                //【用户输入】 【需要保存的内容】   用户输入的行最大的可能高度， 辅助进行识别
+    --th_x_poz_list                 //【用户输入】【需要保存的内容】  用户拖动后的分割线坐标
     --save_location_items           // 【需要保存的内容】
 
     --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
@@ -199,6 +198,8 @@ function create_table_split_th(table_block_id){
 
     var row_max_height = vue.currentTableBlock['row_max_height']
     var col_num = parseInt(vue.currentTableBlock['th_count'])
+
+    // 生成分割线， 让用户拖动， 划分单元格 x（ 水平）坐标
     create_split_thItems_line(box, col_num,  row_max_height)
 
 }
@@ -209,8 +210,6 @@ function create_table_split_th(table_block_id){
 根据已经划分的表头  创建表格模板
 */
 function create_table_template(table_block_id){
-
-
 
 
     if( !has_current_table_block()){
@@ -247,13 +246,15 @@ function create_table_template(table_block_id){
 
 
     vue.currentTableBlock['status'] =2
+    //按照x坐标对用户选择的 定位元素进行排序
     thItems.sort(sort_block_by_x);
 
-    //step 1.  找到表头元素 列划分
+    //step 1.  找到表头元素，利用用户给出的分割线，列划分
     var tableItems = new Array()
     var col_poz_list = find_table_items_by_th_items(thItems)
 
     //step 2.  找到行划分 用户自己选按照哪一列划分行， 默认选第一列， 因为一般情况下第一列不为空
+    console.log("主列： ", JSON.stringify(col_poz_list[main_col_num]))
     var row_poz_list =  find_split_row_poz_list(col_poz_list[main_col_num])
 
     //step 3. 利用行列 进行拆分
@@ -261,13 +262,120 @@ function create_table_template(table_block_id){
     vue.currentTableBlock['row_poz_list'] = row_poz_list
 
     split_td_by_col_row(vue.currentTableBlock['id'], col_poz_list, row_poz_list)
+
+    // canvas 会通过 col_poz_list， row_poz_list 画出单元格的框线
     redraw_canvas()
 
 }
 
 
+/*
+通过分割线找到表头元素
+@Param old_th_items  用户选择的定位元素， 每列最好有一个定位元素， 首位的定位元素必须有
+*/
+function find_table_items_by_th_items(old_th_items){
+    var th_x_poz_list = vue.currentTableBlock['th_x_poz_list']
+    var col_poz_list = []
+        //寻找在一个区间里面的表头定位元素 [left , right]
+    for (var i=1; i<th_x_poz_list.length ; i++){
+        var new_item = {}
+        new_item['top'] = old_th_items[0]['top']
+        new_item['bottom'] = old_th_items[0]['bottom']
+
+        new_item['left'] = th_x_poz_list[i-1]
+        new_item['right'] = th_x_poz_list[i]
+        new_item['x'] = parseInt((new_item['left'] + new_item['right'])/ 2)
+        new_item['y'] = parseInt((new_item['bottom'] + new_item['top'])/ 2)
+
+        new_item['height'] = new_item['bottom'] - new_item['top']
+        new_item['width'] = new_item['right'] - new_item['left']
+        col_poz_list.push(new_item)
+    }
+
+//    for (var col_poz of col_poz_list){
+//        console.error('col_poz: ', JSON.stringify(col_poz))
+//    }
+
+    return col_poz_list
+
+}
+
 /**
-根据行和列的值划分表格
+前一步已经对表头做了列的划分， 根据用户选择的列，做为划分行的参考坐标
+会返回以下格式数据， 用于进行划分表格
+0: {start: 268, end: 392}
+1: {start: 392, end: 488}
+2: {start: 488, end: 543}
+3: {start: 543, end: 722}
+*/
+function find_split_row_poz_list(blockItem){
+
+    //最大行高， 用来寻找行内的元素
+    var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
+
+    var last_item_y = blockItem['bottom']
+    var row_y_pos_list = new Array()
+
+    //遍历所有元素
+    for(var i=0; i< vue.blockItemList.length; i++ ){
+
+        var tempBlockItem = vue.blockItemList[i]
+        if(tempBlockItem['raw_block_type'] == "LINE"){
+            continue
+        }
+
+        // 三个条件 在定位元素的下方， 左右两边在列的范围内。
+        if(tempBlockItem['top'] > blockItem['bottom']  &&
+         tempBlockItem['left'] >= blockItem['left']  &&
+         tempBlockItem['right'] <= blockItem['right']){
+
+
+            //下一个行和上一个行差距太大， 就结束查找 ， 最后一个元素作为区分表格的底部
+            if(tempBlockItem['bottom'] - last_item_y > row_max_height ){
+                console.log(" ** 找到行元素结尾 [%s]  y = ", tempBlockItem['text'], tempBlockItem['top'])
+                break;
+            }
+            //在同一个行内的元素， y值区别不大， 直接跳过 找下一行元素
+            if(tempBlockItem['bottom'] - last_item_y < tempBlockItem['bottom'] - tempBlockItem['top'] ){
+//                console.log("###### ", tempBlockItem['text'], last_item_y)
+                continue;
+            }
+//            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
+//                        tempBlockItem['left'], tempBlockItem['right'])
+
+            last_item_y = tempBlockItem['bottom']
+            //保存上一个划分的y 坐标
+            row_y_pos_list.push(tempBlockItem['top'])
+        }
+
+    }//end for
+
+
+    //将 row_poz_list 封装成对象列表
+    var row_poz_list = new Array()
+    if(row_y_pos_list.length ==0 ){
+        console.log('未找到表格元素')
+    }else if(row_y_pos_list.length == 1){
+        // 一个表格最大的高度， 只有一行的表格
+        row_poz_list.push({'top':row_y_pos_list[0], 'bottom':row_y_pos_list[0] + row_max_height })
+    }else {
+
+        for(var i=1; i<row_y_pos_list.length; i++){
+            row_poz_list.push({'top':row_y_pos_list[i-1], 'bottom':row_y_pos_list[i] })
+        }
+        // 最后一行的bottom = 最后一个y值 + row_max_height
+        var last_y = row_y_pos_list[row_y_pos_list.length -1]
+        row_poz_list.push({'top':last_y, 'bottom':last_y + row_max_height })
+    }
+
+    console.log('row_poz_list  length: %d', row_poz_list.length)
+
+    return  row_poz_list
+}
+
+
+/**
+根据行和列的值划分表格， 这里只打印出单元格的内容， 在flow_client 会把他们显示出来
 */
 
 function split_td_by_col_row(table_id, col_poz_list, row_poz_list){
@@ -289,183 +397,13 @@ function split_td_by_col_row(table_id, col_poz_list, row_poz_list){
 
 
 /**
- 通过分割线找到表头元素
-*/
-function  find_table_items_by_th_items (old_th_items){
-    var th_x_poz_list = vue.currentTableBlock['th_x_poz_list']
-
-    var single_item_list = []  //include word and line block
-    for(var item of old_th_items){
-        single_item_list.push(item)
-    }
-
-    var item_index = 0
-
-    var col_poz_list = []
-    for (var i=1; i<th_x_poz_list.length ; i++){
-//        console.log(th_x_poz_list[i-1] , th_x_poz_list[i])
-        while(item_index< single_item_list.length){
-
-            var new_item = {}
-            new_item['left'] = single_item_list[item_index]['left']
-            new_item['top'] = single_item_list[item_index]['top']
-            new_item['bottom'] = single_item_list[item_index]['bottom']
-            new_item['text'] =  ''
-
-            for (var j= item_index; j<single_item_list.length; j++  ){
-//                console.log(" th_x_poz_list: [%d] item_index  %d , j= [%d]   [%s]", i, item_index , j, single_item_list[j]['text'])
-                if (single_item_list[j]['x'] > th_x_poz_list[i-1]  &&
-                    single_item_list[j]['x'] < th_x_poz_list[i] ){
-                    new_item['text'] += ' '+ single_item_list[j]['text']
-                    new_item['right'] = single_item_list[j]['right']
-
-
-                    if( single_item_list[j]['bottom'] > new_item['bottom'] ){
-                        new_item['bottom'] = single_item_list[j]['bottom']
-                    }
-
-                    if( single_item_list[j]['top'] < new_item['top'] ){
-                        new_item['top'] = single_item_list[j]['top']
-                    }
-                    item_index += 1
-                }else {
-                    break;
-                }
-            }
-
-            new_item['left'] = th_x_poz_list[i-1]
-            new_item['right'] = th_x_poz_list[i]
-            new_item['x'] = parseInt((new_item['left'] + new_item['right'])/ 2)
-            new_item['y'] = parseInt((new_item['bottom'] + new_item['top'])/ 2)
-
-            new_item['height'] = new_item['bottom'] - new_item['top']
-            new_item['width'] = new_item['right'] - new_item['left']
-            console.log("new_item  [%s] x=%d, y=%d left=%d, right=%d, height=%d", new_item['text'],new_item['x'], new_item['y'],
-                new_item['left'], new_item['right'], new_item['height'])
-            col_poz_list.push(new_item)
-            break;
-        }
-    }   //end for
-
-    return col_poz_list
-
-}
-
-
-function find_td_item_x_boundary(column_poz_list, j){
-    var left =0;
-    var right = 0;
-    if(j == 0 ){
-        left = 0;
-        right = column_poz_list[j+1]['start']
-    }else if (j== column_poz_list.length-1){
-        left = column_poz_list[j-1]['end']
-        right = page_width+1
-    }else {
-        left = column_poz_list[j-1]['end']
-        right = column_poz_list[j+1]['start']
-
-    }
-
-    return {'left':left, 'right': right}
-
-}
-
-/**
-进行列分割
-会返回以下格式数据， 用于进行划分表格
-0: {start: 51, end: 79}
-1: {start: 211, end: 274}
-2: {start: 369, end: 411}
-3: {start: 855, end: 907}
-*/
-
-function find_split_column_poz_list(thItems){
-
-
-    var column_x_pos_list = new Array()
-    for(var i=0; i< thItems.length; i++){
-        column_x_pos_list.push({'start':thItems[i]['left'], 'end':thItems[i]['right'] })
-    }
-//    console.log(column_x_pos_list)
-    return column_x_pos_list;
-
-}
-
-/**
-用第一行的数据 找到分割线
-会返回以下格式数据， 用于进行划分表格
-0: {start: 268, end: 392}
-1: {start: 392, end: 488}
-2: {start: 488, end: 543}
-3: {start: 543, end: 722}
-*/
-function find_split_row_poz_list(blockItem){
-
-    var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
-
-    var last_item_y = blockItem['bottom']
-    var row_y_pos_list = new Array()
-
-    for(var i=0; i< vue.blockItemList.length; i++ ){
-
-        var tempBlockItem = vue.blockItemList[i]
-        if(tempBlockItem['raw_block_type'] == "LINE"){
-            continue
-        }
-
-        if(tempBlockItem['top'] > blockItem['bottom']  &&
-         tempBlockItem['left'] >= blockItem['left']  &&
-         tempBlockItem['right'] <= blockItem['right']){
-
-
-            //下一个行和上一个行差距太大， 就结束查找 ， 最后一个元素作为区分表格的底部
-            if(tempBlockItem['bottom'] - last_item_y > row_max_height ){
-                console.log(" ** 找到行元素结尾 [%s]  y = ", tempBlockItem['text'], tempBlockItem['top'])
-                break;
-            }
-            if(tempBlockItem['bottom'] - last_item_y < tempBlockItem['bottom'] - tempBlockItem['top'] ){
-//                console.log("###### ", tempBlockItem['text'], last_item_y)
-                continue;
-            }
-//            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
-//                        tempBlockItem['left'], tempBlockItem['right'])
-
-            last_item_y = tempBlockItem['bottom']
-            row_y_pos_list.push(tempBlockItem['top'])
-        }
-
-    }//end for
-
-
-    var row_poz_list = new Array()
-    if(row_y_pos_list.length ==0 ){
-        console.log('未找到表格元素')
-    }else if(row_y_pos_list.length == 1){
-        // 一个表格最大的高度
-        row_poz_list.push({'top':row_y_pos_list[0], 'bottom':row_y_pos_list[0] + row_max_height })
-    }else {
-
-        for(var i=1; i<row_y_pos_list.length; i++){
-            row_poz_list.push({'top':row_y_pos_list[i-1], 'bottom':row_y_pos_list[i] })
-        }
-        var last_y = row_y_pos_list[row_y_pos_list.length -1]
-        row_poz_list.push({'top':last_y, 'bottom':last_y + row_max_height })
-    }
-
-    console.log('row_poz_list  length: %d', row_poz_list.length)
-
-    return  row_poz_list
-}
-
-/**
 判断是否创建了 表格模板
 */
 function has_current_table_block(){
 
     if(vue.currentTableBlock == null || vue.currentTableBlock['id'] == null
       || vue.tableBlockList.length == 0){
-        show_message(" 请先创建表格 ")
+        show_message(" 请先创建表格模板， 可以选择'水平' 或者'垂直' 两种形式的模板 ")
         return false;
     }
     return true

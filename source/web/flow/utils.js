@@ -1,31 +1,4 @@
 /**
-找到一个word 元素的父元素
-*/
-function find_parent_block_id_by_child(child_blockItem){
-
-    if(child_blockItem['raw_block_type'] !='WORD'){
-        return
-    }
-
-   for(var i=0; i< vue.blockItemList.length; i++  ){
-        parent_blockItem = vue.blockItemList[i]
-        if(parent_blockItem['raw_block_type'] != "LINE" ){
-            continue
-        }
-
-        var child_list = parent_blockItem['child_list']
-//        console.log('child_list length: ', child_list.length)
-        for (var j =0; j< child_list.length; j++ ){
-            if(child_blockItem['id'] == child_list[j]){
-                child_blockItem['parent_block_id'] =  parent_blockItem['id']
-//                console.log ("parent %s   child:  %s",  parent_blockItem['id'], child_blockItem['id'])
-            }
-        }
-   }
-
-}
-
-/**
 根据ID找到元素
 */
 function find_block_by_id(block_id){
@@ -211,6 +184,9 @@ function show_message(message){
     $('#myModal').modal('show')
 }
 
+/**
+对表格分割线的X 坐标进行排序， 并且返回list
+*/
 function sort_map_return_list(data_map){
     var dataArray= []
     for (var item of data_map ){
@@ -221,22 +197,6 @@ function sort_map_return_list(data_map){
     console.log('sort map : ', JSON.stringify(dataArray))
     return dataArray;
 }
-
-
-/**
-对一个LINE 元素进行拆分或者合并操作
-*/
-function split_function(id){
-    var blockItem = find_block_by_id(id)
-    if (blockItem['is_split'] == false){
-        vue.currentTableBlock['split_block_list'].push(blockItem['id'])
-    }else {
-        vue.currentTableBlock['split_block_list'].pop(blockItem['id'])
-    }
-    blockItem['is_split'] = !blockItem['is_split']
-    redraw_canvas()
-}
-
 
 /**
 保存定位元素
@@ -254,11 +214,10 @@ function copy_block_item(block_item){
     return new_block_item
 }
 
-
+/**
+保存模板
+*/
 function save_template(){
-
-
-
 
 
     if(vue.tableBlockList ==null || vue.tableBlockList.length ==0 ){
@@ -276,44 +235,24 @@ function save_template(){
     }
 
 
-    /**
-
-    Vue  对象的结构
-    --tableBlockList[]                  //一共发现多少个相同的表格模板
-      --tableBlock{}
-        --id  //text
-        --thItems[]                     //【用户输入】 模板的定位元素， 用户点击选择的Block  首位两端的就可以， 最少两个
-                                        // [ {left, right, top, bottom}, {left, right, top, bottom}]
-        --th_count                      //【用户输入】 【需要保存的内容】   实际表格列数， 用户自己填入， 用户生成分割线
-        --row_max_height                //【用户输入】 【需要保存的内容】   用户输入的行最大的可能高度， 辅助进行识别
-        --save_location_items           // 【需要保存的内容】
-
-        --status                        // 当前状态 0:新创建  1: 生成了分割线  2:生成了这个表格匹配的模板
-        --col_poz_list                  // 用来分割表头元素横线的 X 坐标 集合
-        --row_poz_list                  // 用来分割行元素横线的 Y 坐标 集合
-    */
-
     var save_table_block_list = new Array()
     for (var  tableBlock of vue.tableBlockList){
         var table_block_item = {}
         if(tableBlock['status'] != 2){
             continue
         }
-        table_block_item['th_count'] =  tableBlock['th_count']
-        table_block_item['row_max_height'] =  tableBlock['row_max_height']
-        table_block_item['save_location_items'] =  tableBlock['save_location_items']
-        table_block_item['table_name'] =  tableBlock['table_name']
-        table_block_item['table_type'] =  tableBlock['table_type']
-        table_block_item['main_col_num'] =  tableBlock['main_col_num']
-
-
-        table_block_item['th_x_poz_list'] =  tableBlock['th_x_poz_list']
+        //需要保存的元素
+        table_block_item['th_count'] =  tableBlock['th_count']                          // 列数
+        table_block_item['row_max_height'] =  tableBlock['row_max_height']              // 最大行高
+        table_block_item['save_location_items'] =  tableBlock['save_location_items']    // 定位元素列表
+        table_block_item['table_name'] =  tableBlock['table_name']                      // 表格名称
+        table_block_item['table_type'] =  tableBlock['table_type']                      // 表格类型
+        table_block_item['main_col_num'] =  tableBlock['main_col_num']                  // 主列编号
+        table_block_item['th_x_poz_list'] =  tableBlock['th_x_poz_list']                // 分割线
 
         save_table_block_list.push(table_block_item)
 
     }
-
-
 
     localStorage.setItem(template_name, JSON.stringify(save_table_block_list));
 
@@ -336,13 +275,13 @@ function save_template(){
             isFindFlag = true
         }
     }
-
+    //将模板保存到模板列表中
     if(isFindFlag == false){
         template_list.push(template_name)
         localStorage.setItem(LOCAL_SAVE_NAME_TEMPLATE_LIST, JSON.stringify(template_list));
     }
 
-    show_message("模板创建成功  ")
+    show_message("模板 ["+template_name+"] 创建成功。 ")
 
 }
 
