@@ -5,7 +5,11 @@
 欢迎联系参与方案共建和提交方案需求, 也欢迎在 github 项目issue中留言反馈bugs。
 
 # 项目说明
-通过AWS Textract 服务对图像中的文本进行识别， 返回json格式的数据文件， 然后通过UI界面对模板进行设置， 后续相同类型的图像文件，会自动进行识别。
+通过AWS Textract 服务对图像中的文本进行识别， 返回json格式的数据文件， 返回的数据包含了文本块的坐标，内容，置信度等信息。 返回内容如下：
+ ![image](./images/006.jpg)
+业务系统需要解析这些内容，保存到业务系统中。 不同文件需要提取的内容不同， 直接使用Textract 比较难满足特定需求。 所以开发了一组功能来解决这个问题。
+
+首先通过UI界面对模板进行设置，用户通过简单的点击，填写信息，生成模板内容， 后续相同类型的图像文件，会自动进行识别。
 
 
 #架构图 
@@ -106,7 +110,7 @@ python ./source/text_ocr_util.py \
 第一文件用于生成模板， 剩余的文件进行测试
 
 
-## TODO  代码封装到Lambda中， 用网页进行文件调用
+
 
 
 
@@ -115,8 +119,10 @@ python ./source/text_ocr_util.py \
 ./web 目录下的文件可以部署到服务器上， 或者在本地打开， 进行操作。 
 
 ```
-source/web/fix/index.html        固定布局的模板设置
-source/web/flow/index.html       连续布局的模板设置
+source/web/fix/index.html               固定布局的模板设置
+source/web/client/index.html            固定布局的模板客户端调用
+source/web/flow/index.html              连续布局的模板设置
+source/web/flow_client/index.html       连续布局的模板客户端调用
 ```
 
 ## 生成固定布局的模板
@@ -131,5 +137,4 @@ source/web/flow/index.html       连续布局的模板设置
 
 source/web/client/index.html     客户端进行固定模板匹配的示例
 ![image](./images/004.jpg)
-
 
