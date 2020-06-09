@@ -10,8 +10,8 @@ $(function(){
                 currentTableBlock:{},
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/list.json",
 
-//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
-                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/z003.json",
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
+//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/z003.json",
                 data:{}
 
              },methods:{
@@ -262,6 +262,12 @@ function create_table_template(table_block_id){
     //step 3. 利用行列 进行拆分
     vue.currentTableBlock['col_poz_list'] = col_poz_list
     vue.currentTableBlock['row_poz_list'] = row_poz_list
+
+    if (row_poz_list.length <=0){
+        show_message("没有生成表格， 请检查行高等设置！")
+        redraw_canvas()
+        return ;
+    }
 
     split_td_by_col_row(vue.currentTableBlock['id'], col_poz_list, row_poz_list)
 
