@@ -1,4 +1,4 @@
-var page_width=960;  //默认页面宽度
+var page_width=1560;  //默认页面宽度
 var page_height=2000;  //默认页面高度 会根据元素内容自动跳转
 var canvas_width = page_width
 var canvas_height = page_height
@@ -243,7 +243,8 @@ function click_item(blockItem){
 
 //    console.log("----------------vue.currentTableBlock['status']   ", vue.currentTableBlock['status'])
     if (vue.currentTableBlock['status'] !=0 ){
-        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
+//        show_message("已经选取完元素， 如果希望重新选择， 请点击删除")
+          console.error("已经选取完元素， 如果希望重新选择， 请点击删除")
         return false;
     }
 

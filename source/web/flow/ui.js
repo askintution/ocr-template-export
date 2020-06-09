@@ -9,7 +9,9 @@ $(function(){
                 tableBlockList:[],
                 currentTableBlock:{},
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/list.json",
-                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
+
+//                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
+                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/z003.json",
                 data:{}
 
              },methods:{
@@ -313,12 +315,14 @@ function find_split_row_poz_list(blockItem){
     //最大行高， 用来寻找行内的元素
     var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
 
+
     var last_item_y = blockItem['bottom']
     var row_y_pos_list = new Array()
-
+    console.log("表头最大行高 %d    last_item_y   %d", row_max_height, last_item_y)
+    print_block_item('表头定位元素', blockItem)
     //遍历所有元素
     for(var i=0; i< vue.blockItemList.length; i++ ){
-
+//        print_block_item("debug -------> ", vue.blockItemList[i])
         var tempBlockItem = vue.blockItemList[i]
         if(tempBlockItem['raw_block_type'] == "LINE"){
             continue
