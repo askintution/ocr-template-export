@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="../jcanvas.min.js"></script>
 </head>
-<body style="width:2500px;margin:0 auto;">
+<body style="width:1750px;margin:0 auto;">
 
 <div class="container-fluid" id="main" style="width:100%">
 
@@ -131,7 +131,7 @@
                             <td v-for=" table_td of table_row">
 
 
-                                <input v-model="table_td" v-if="enable_edit_text"/>
+                                <input v-text="table_td" v-if="enable_edit_text"/>
                                 <small v-text="table_td" v-if="enable_edit_text == false"></small>
 
                             </td>

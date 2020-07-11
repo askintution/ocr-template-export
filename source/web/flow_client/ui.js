@@ -59,7 +59,9 @@ function get_data(url){
     vue.tableBlockList = new Array()
     vue.currentTableBlock = {}
 
+    console.log("-------------------------------- ")
     vue.templateList = load_template_list()
+    console.log("-------------------------------- ", vue.templateList)
 
     $("#loading-icon").show()
     $.getJSON(url, function (data) {
