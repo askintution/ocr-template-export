@@ -131,7 +131,7 @@
                             <td v-for=" table_td of table_row">
 
 
-                                <input v-text="table_td" v-if="enable_edit_text"/>
+                                <input v-model="table_td" v-if="enable_edit_text"/>
                                 <small v-text="table_td" v-if="enable_edit_text == false"></small>
 
                             </td>
