@@ -328,7 +328,7 @@ function find_split_row_poz_list(blockItem){
     print_block_item('表头定位元素', blockItem)
     //遍历所有元素
     for(var i=0; i< vue.blockItemList.length; i++ ){
-//        print_block_item("debug -------> ", vue.blockItemList[i])
+        print_block_item("debug -------> ", vue.blockItemList[i])
         var tempBlockItem = vue.blockItemList[i]
         if(tempBlockItem['raw_block_type'] == "LINE"){
             continue
@@ -336,8 +336,8 @@ function find_split_row_poz_list(blockItem){
 
         // 三个条件 在定位元素的下方， 左右两边在列的范围内。
         if(tempBlockItem['top'] > blockItem['bottom']  &&
-         tempBlockItem['left'] >= blockItem['left']  &&
-         tempBlockItem['right'] <= blockItem['right']){
+         tempBlockItem['left'] >= blockItem['left'] - 5  &&
+         tempBlockItem['right'] <= blockItem['right'] +5){
 
 
             //下一个行和上一个行差距太大， 就结束查找 ， 最后一个元素作为区分表格的底部
