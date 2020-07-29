@@ -49,7 +49,10 @@ function parse_data(data){
     reset_canvas(page_width , document_zoom_out_height)
 
     console.log('Canvas size=[%f , %f]  document height %f ', page_width, document_zoom_out_height,  document_page_height)
+
     vue.blockItemList = blockItemList
+
+
 
     console.log("Block item count:   ", vue.blockItemList.length)
 
@@ -58,6 +61,9 @@ function parse_data(data){
             zoom_layout_block(_blockItem, document_zoom_out_height)
      }
     // 绘制元素
+
+    vue.blockItemList.sort(sort_block_by_left_top)
+
     redraw_canvas()
 
 

@@ -138,6 +138,19 @@ function sort_block_by_top(a,b) {
     return a['top']-b['top'];
 }
 
+function sort_block_by_left_top(a,b) {
+
+    if(a['top']-b['top'] != 0){
+        return a['top']-b['top'];
+    }else {
+        return a['left']-b['left'];
+    }
+
+}
+
+
+
+
 function print_block_item(message, _blockItem){
 
     console.log("[%s] [%s] [%s]  [top=%d, bottom=%d]  [left=%d, right=%d]", message,  _blockItem['id'], _blockItem['text'] ,

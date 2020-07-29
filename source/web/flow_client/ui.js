@@ -208,6 +208,7 @@ function find_table_items_by_th_items(old_th_items,  th_x_poz_list){
 function find_split_row_poz_list(blockItem, row_max_height){
 
     var row_max_height = parseInt(row_max_height ) - blockItem['height']
+//    var row_max_height = parseInt(vue.currentTableBlock['row_max_height'])
     console.log('find_split_row_poz_list ---- [%s]  [x=%d, y=%d, left=%d, right=%d, height=%d]  row_max_height: [%d]', blockItem['text'], blockItem['x'], blockItem['y'],
     blockItem['left'], blockItem['right'] , blockItem['height'], row_max_height)
 
@@ -224,9 +225,9 @@ function find_split_row_poz_list(blockItem, row_max_height){
             continue
         }
 
-        if(tempBlockItem['top'] > blockItem['bottom']  &&
-         tempBlockItem['left'] >= blockItem['left']  &&
-         tempBlockItem['right'] <= blockItem['right']){
+        if(tempBlockItem['top'] - blockItem['bottom']> -5  &&
+         tempBlockItem['left'] >= blockItem['left'] -5 &&
+         tempBlockItem['right'] <= blockItem['right'] +5 ){
 
 
             //下一个行和上一个行差距太大， 就结束查找 ， 最后一个元素作为区分表格的底部

@@ -9,7 +9,7 @@ $(function(){
                 tableBlockList:[],
                 currentTableBlock:{},
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/list.json",
-
+//                  data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/test013.json",
                 data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/2020_05_05_pdf.json",
 //                data_url:"https://dikers-html.s3.cn-northwest-1.amazonaws.com.cn/ocr_output/z003.json",
                 data:{}
@@ -256,6 +256,7 @@ function create_table_template(table_block_id){
     var col_poz_list = find_table_items_by_th_items(thItems)
 
     //step 2.  找到行划分 用户自己选按照哪一列划分行， 默认选第一列， 因为一般情况下第一列不为空
+    console.log("主列数量", col_poz_list.length)
     console.log("主列： ", JSON.stringify(col_poz_list[main_col_num]))
     var row_poz_list =  find_split_row_poz_list(col_poz_list[main_col_num])
 
@@ -320,29 +321,37 @@ function find_split_row_poz_list(blockItem){
 
     //最大行高， 用来寻找行内的元素
     var row_max_height = parseInt(vue.currentTableBlock['row_max_height']) - blockItem['height']
+//    var row_max_height = parseInt(vue.currentTableBlock['row_max_height'])
 
 
     var last_item_y = blockItem['bottom']
     var row_y_pos_list = new Array()
     console.log("表头最大行高 %d    last_item_y   %d", row_max_height, last_item_y)
     print_block_item('表头定位元素', blockItem)
+    console.log(" 共有元素：  ", vue.blockItemList.length)
     //遍历所有元素
     for(var i=0; i< vue.blockItemList.length; i++ ){
-        print_block_item("debug -------> ", vue.blockItemList[i])
+
         var tempBlockItem = vue.blockItemList[i]
+        print_block_item("debug ---> ", vue.blockItemList[i])
         if(tempBlockItem['raw_block_type'] == "LINE"){
             continue
         }
 
+
         // 三个条件 在定位元素的下方， 左右两边在列的范围内。
-        if(tempBlockItem['top'] > blockItem['bottom']  &&
+        if(tempBlockItem['top'] - blockItem['bottom']> -5  &&
          tempBlockItem['left'] >= blockItem['left'] - 5  &&
          tempBlockItem['right'] <= blockItem['right'] +5){
 
+            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d, top=%d, bottom=%d]  last_item_y= %d', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
+                                    tempBlockItem['left'], tempBlockItem['right'],tempBlockItem['top'], tempBlockItem['bottom'] , last_item_y)
 
             //下一个行和上一个行差距太大， 就结束查找 ， 最后一个元素作为区分表格的底部
+
+            console.log("^^^^^^^^^^^ ", tempBlockItem['bottom'] - last_item_y , row_max_height)
             if(tempBlockItem['bottom'] - last_item_y > row_max_height ){
-                console.log(" ** 找到行元素结尾 [%s]  y = ", tempBlockItem['text'], tempBlockItem['top'])
+                console.log(" *找到行元素结尾 [%s]  top=%d   bottom=%d  last_item_y=%d", tempBlockItem['text'], tempBlockItem['top'], tempBlockItem['bottom'], last_item_y )
                 break;
             }
             //在同一个行内的元素， y值区别不大， 直接跳过 找下一行元素
@@ -350,8 +359,7 @@ function find_split_row_poz_list(blockItem){
 //                console.log("###### ", tempBlockItem['text'], last_item_y)
                 continue;
             }
-//            console.log('find ---- [%s]  [x=%d, y=%d, left=%d, right=%d]', tempBlockItem['text'], tempBlockItem['x'], tempBlockItem['y'],
-//                        tempBlockItem['left'], tempBlockItem['right'])
+
 
             last_item_y = tempBlockItem['bottom']
             //保存上一个划分的y 坐标

@@ -60,6 +60,7 @@ function parse_data(data){
 //            find_parent_block_id_by_child(_blockItem)
      }
     // 绘制元素
+    vue.blockItemList.sort(sort_block_by_left_top)
     redraw_canvas()
 
 
